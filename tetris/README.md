@@ -1,71 +1,45 @@
-  ![Demo GIF](https://ytiurin.github.io/tetris/public/demo.gif)
+# Tetris JS
+[![Build status](https://neilb.visualstudio.com/Git%20Neil/_apis/build/status/Tetris%20JS%20CI)](https://neilb.visualstudio.com/Git%20Neil/_build/latest?definitionId=5)
 
-# [Play :video_game: TETRIS](https://ytiurin.github.io/tetris/)
+This is the classic game of Tetris written in pure HTML (No Canvas 2D Controls). It uses HTML Tables and jQuery for rendering, and is surprisingly pretty fast. I know there's a lot of these out on the web but I wanted to create something that looked minimalistic yet elegant with excellent controls and compatibility.
 
-I made this small project to simulate the original 1984 version of TETRIS game. I saw a [Youtube video](https://www.youtube.com/watch?v=O0gAgQQHFcQ) showing the gameplay of this classic run on [DVK-2](https://en.wikipedia.org/wiki/DVK) computer and thought I could implement it in browser and have some fun in the process.
+Wide browser support on both desktop and mobile devices. Includes keyboard, touch, and even Xbox Gamepad Support! It is fully responsive and on larger screens it displays more information like the next piece. I spent quite a bit of time tweaking the touch controls to make it feel smooth and responsive on any smartphone.
 
-To make it look similar to the old game, I made it entirely text based, meaning that every frame of the game animation is rendered into a string of text with 25 rows of 80 chars and looks like this:
+See demo here: https://www.neilb.net/tetrisjs/
 
+# Architecture
+
+The code references a few external libraries:
+
+**jQuery** for DOM manipulation and rendering
+
+**Bootstrap** for button styles and grid layout for desktop/mobile
+
+**Rivets** for binding of data labels likes score, lines, etc..
+
+**RequireJS** as the AMD module loader of the compiled TypeScript JS files
+
+**Font Awesome** for directional icons
+
+I used the following styles to extend the touch surface to the entire screen:
+
+```css
+body, html {
+    height: 100%;
+}
 ```
 
-ROWS HIT:             11    ‹! . . . . . . . . . .!›                            
-SCORE:               980    ‹! . . . . . . . . . .!›      UP ARROW: ROTATE      
-LEVEL:                 2    ‹! . . . . . . . . . .!›    DOWN ARROW: SOFT DROP   
-                            ‹! . . . .▮▮ . . . . .!›      SPACEBAR: HARD DROP   
-                            ‹! . . . .▮▮▮▮ . . . .!›        ESC, P: PAUSE       
-                            ‹! . . . .▮▮ . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                    ▮▮▮▮▮▮▮▮‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . . . . .!›                            
-                            ‹! . . . . . . .▮▮▮▮▮▮!›                            
-                            ‹!▮▮▮▮ . . .▮▮ .▮▮▮▮▮▮!›                            
-                            ‹!▮▮▮▮ .▮▮▮▮▮▮▮▮▮▮▮▮▮▮!›                            
-                            ‹!====================!›                            
-                              \/\/\/\/\/\/\/\/\/\/                              
+The code is written in TypeScript, to run and compile it locally use the following commands:
 
-```
+`npm install`
 
-Basic setup code:
+`tsc`
 
-```javascript
+Please send me any feedback or bugs you may find.
 
-TETRIS.on({
-  nextFrame: function( frame ) {
-    // replace HTML special chars
-    frame = frame.replace( /[ <>]|\n\r/g, function( m ) { return {
-      " ": "&nbsp;",
-      "<" : "&lsaquo;",
-      ">" : "&rsaquo;",
-      "\n\r" : "<br>" }[ m ] })
+Thanks!
 
-    document.body.innerHTML = frame
-  }
-})
+# Online Multiplayer
+The multiplayer version of this repo is here
 
-addEventListener( "keydown", function( e ) {
-  TETRIS.pressKey( e.keyCode )
-})
-
-```
-
-Check the [play.js](https://github.com/ytiurin/tetris/blob/master/src/play.js) for more advanced code.
-
-## Audio
-
-I extracted some audio effects from the original video and integrated them into the demo using [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API).
-
-## Progressive Web App
-
-The [play page](https://ytiurin.github.io/tetris/) is served as a [PWA](https://developers.google.com/web/progressive-web-apps/), so you can play the game offline.
-
-## Leaderboard
-
-I also made a simple microservice to store best scores of the [play page](https://ytiurin.github.io/tetris/).
+https://github.com/nbarkhina/TetrisNET

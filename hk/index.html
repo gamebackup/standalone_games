@@ -2,7 +2,6 @@
 <!DOCTYPE html>
 <html lang="en-us">
 <head>
-<base href="https://cdn.jsdelivr.net/gh/HorizonOfficia/hollow-knight@latest/">
 <meta charset="utf-8">
 <title>Hollow Knight</title>
 <style>
@@ -13,7 +12,6 @@
 <div id="loading-text">truffed.lol</div>
 <div id="unity-mobile-warning">WebGL not supported on mobile</div>
 <canvas id="unity-canvas"></canvas>
-<div id="fps-graph" style="display:none"><canvas id="fps-canvas"></canvas></div>
   
 <script>
   const lt = document.getElementById("loading-text"),
@@ -133,14 +131,6 @@ function gp(f, s, e) {
     };
     document.body.appendChild(sc);
 })();
-
-function asb() {
-    sb = document.createElement('button');
-    sb.className = 'savebtn';
-    sb.textContent = 'download';
-    sb.onclick = sdl;
-    document.body.appendChild(sb);
-}
 
 function odb(n) {
     return new Promise((ok, bd) => {

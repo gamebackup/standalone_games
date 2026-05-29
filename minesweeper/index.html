@@ -1,19 +1,65 @@
 <!DOCTYPE HTML>
 <html lang="en">
   <head>
-      <title>Minesweeper | 3kh0</title>
+      <title>Minesweeper</title>
       <meta charset="utf-8">
+      <style>
+        .tab-buttons { text-align: center; margin-bottom: 10px; }
+        .tab-buttons button {
+          background: #c0c0c0;
+          border: 2px solid;
+          border-color: #fff #808080 #808080 #fff;
+          padding: 6px 16px;
+          font-family: monospace;
+          font-size: 14px;
+          cursor: pointer;
+        }
+        .tab-buttons button.active {
+          background: #dfdfdf;
+          border-color: #808080 #fff #fff #808080;
+        }
+        .game-container { display: none; }
+        .game-container.active { display: flex; justify-content: center; }
+        .game-wrapper { transform: scale(1.8); transform-origin: top center; }
+      </style>
   </head>
-  <script src="/js/main.js"></script>
-  <body style="background-color:#ffffff;">
-<div class="minesweeper-game" data-preset="expert" data-name="game1"></div>
-<div class="minesweeper-controller" data-name="game1"></div>
-<script src="a70de4b14c0109772a9dc7a4d43a2657210cc7d1.js"></script>
-<div style="text-align: center;">
-  <a href="./beginner">Beginner</a> |
-  <a href="./intermediate">Intermediate</a> |
-  <a href=".">Expert</a> |
-  <a href="./all">All</a>
+  <body style="background-color:#008080;">
+<div class="tab-buttons">
+  <button onclick="switchGame('beginner')" id="tab-beginner" class="active">Beginner</button>
+  <button onclick="switchGame('intermediate')" id="tab-intermediate">Intermediate</button>
+  <button onclick="switchGame('expert')" id="tab-expert">Expert</button>
 </div>
+
+<div class="game-container active" id="game-beginner">
+<div class="game-wrapper">
+<div class="minesweeper-game" data-preset="beginner" data-name="game1"></div>
+</div>
+</div>
+
+<div class="game-container" id="game-intermediate">
+<div class="game-wrapper">
+<div class="minesweeper-game" data-preset="intermediate" data-name="game2"></div>
+</div>
+</div>
+
+<div class="game-container" id="game-expert">
+<div class="game-wrapper">
+<div class="minesweeper-game" data-preset="expert" data-name="game3"></div>
+</div>
+</div>
+
+<script src="a70de4b14c0109772a9dc7a4d43a2657210cc7d1.js"></script>
+<script>
+function switchGame(name) {
+  document.querySelectorAll('.game-container').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  document.querySelectorAll('.tab-buttons button').forEach(function(el) {
+    el.classList.remove('active');
+  });
+  document.getElementById('game-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+</script>
 </body>
 </html>

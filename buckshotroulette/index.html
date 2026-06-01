@@ -12,8 +12,12 @@
 </head>
 
 <body>
-    <script src="main.js"></script>
-    <div id="loading-text" style="color: white; font-family: cursive; font-size: 48px; text-align: center; margin-top: 20px;">LOADING...</div>
+    <div id="loading-screen">
+        <img id="loading-splash" src="buckshot-roulette.png" alt="">
+        <div id="loading-text">LOADING...</div>
+        <div id="loading-bar-track"><div id="loading-bar-fill"></div></div>
+        <div id="loading-info"></div>
+    </div>
     <canvas id="canvas"> Your browser does not support the canvas tag. </canvas>
     <noscript> Your browser does not support JavaScript. </noscript>
     <div id="status">
@@ -21,6 +25,16 @@
         <progress id="status-progress"></progress>
         <div id="status-notice"></div>
     </div>
+    <script>
+        window.__buckshotProgress = function(loaded, total) {
+            var pct = Math.round(loaded / total * 100);
+            var fill = document.getElementById('loading-bar-fill');
+            var info = document.getElementById('loading-info');
+            if (fill) fill.style.width = pct + '%';
+            if (info) info.textContent = 'Loading assets... ' + loaded + ' / ' + total + ' (' + pct + '%)';
+        };
+    </script>
+    <script src="main.js"></script>
     <script src="buckshot-roulette.js"></script>
     <script>
         const GODOT_CONFIG = {
@@ -40,11 +54,11 @@
         const engine = new Engine(GODOT_CONFIG);
 
         function run() {
-            const loadingText = document.getElementById('loading-text');
+            const loadingScreen = document.getElementById('loading-screen');
             const statusOverlay = document.getElementById('status');
             const statusProgress = document.getElementById('status-progress');
             const statusNotice = document.getElementById('status-notice');
-            loadingText.remove();
+            if (loadingScreen) loadingScreen.remove();
             let initializing = true;
             let statusMode = '';
 

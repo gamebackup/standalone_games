@@ -69,19 +69,7 @@
           outline: none;
           border: 2px solid #808080;
         }
-        .scroll-container:focus {
-          border-color: #fff;
-        }
-        .scroll-hint {
-          background: rgba(0,0,0,0.7);
-          color: #0f0;
-          font-family: monospace;
-          font-size: 12px;
-          padding: 4px 10px;
-          text-align: center;
-          margin-top: 2px;
-          border: 1px solid #0f0;
-        }
+
       </style>
   </head>
   <body style="background-color:#008080;">
@@ -137,30 +125,6 @@ function switchGame(name) {
   document.getElementById('tab-' + name).classList.add('active');
 }
 
-var scrollEl = null;
-
-function setupScroll(el) {
-  if (scrollEl) {
-    scrollEl.removeEventListener('keydown', handleScrollKeys);
-  }
-  el.setAttribute('tabindex', '0');
-  el.addEventListener('keydown', handleScrollKeys);
-  scrollEl = el;
-  el.focus();
-}
-
-function handleScrollKeys(e) {
-  var el = scrollEl;
-  if (!el) return;
-  var step = 80;
-  switch (e.key) {
-    case 'ArrowUp': case 'w': case 'W': el.scrollTop -= step; e.preventDefault(); break;
-    case 'ArrowDown': case 's': case 'S': el.scrollTop += step; e.preventDefault(); break;
-    case 'ArrowLeft': case 'a': case 'A': el.scrollLeft -= step; e.preventDefault(); break;
-    case 'ArrowRight': case 'd': case 'D': el.scrollLeft += step; e.preventDefault(); break;
-  }
-}
-
 function startCustomGame() {
   var rows = parseInt(document.getElementById('customRows').value);
   var cols = parseInt(document.getElementById('customCols').value);
@@ -194,13 +158,6 @@ function startCustomGame() {
   scrollDiv.className = 'scroll-container';
   wrapper.appendChild(scrollDiv);
 
-  if (dim) {
-    var hint = document.createElement('div');
-    hint.className = 'scroll-hint';
-    hint.textContent = 'Arrow keys / WASD to navigate';
-    container.appendChild(hint);
-  }
-
   var gameDiv = document.createElement('div');
   gameDiv.className = 'minesweeper-game';
   gameDiv.setAttribute('data-preset', 'custom');
@@ -213,7 +170,6 @@ function startCustomGame() {
     window.initMinesweeper(gameDiv);
   }
 
-  setupScroll(scrollDiv);
 }
 </script>
 </body>

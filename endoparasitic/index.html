@@ -1,50 +1,106 @@
 <!DOCTYPE html>
 <html xmlns='http://www.w3.org/1999/xhtml' lang='' xml:lang=''>
 <head>
-	<!-- base tag removed for offline use -->
 	<meta charset='utf-8' />
 	<meta name='viewport' content='width=device-width, user-scalable=no' />
 	<title>Endoparasitic</title>
-	<link rel="stylesheet" href="style.css">
-<link id='-gd-engine-icon' rel='icon' type='image/png' href='Endoparasitic.icon.png' />
-<link rel='apple-touch-icon' href='Endoparasitic.apple-touch-icon.png'/>
-
+	<link id='-gd-engine-icon' rel='icon' type='image/png' href='favicon.png' />
+	<style>
+		body {
+			touch-action: none;
+			margin: 0;
+			border: 0 none;
+			padding: 0;
+			text-align: center;
+			background-color: black;
+		}
+		#canvas {
+			display: block;
+			margin: 0;
+			color: white;
+		}
+		#canvas:focus {
+			outline: none;
+		}
+		#loading-screen {
+			position: fixed;
+			top: 0; left: 0; right: 0; bottom: 0;
+			background: #000;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			z-index: 100;
+		}
+		#loading-splash {
+			max-width: 80%;
+			max-height: 50vh;
+			margin-bottom: 20px;
+			image-rendering: pixelated;
+		}
+		#loading-text {
+			color: #fff;
+			font-family: cursive;
+			font-size: 36px;
+			margin-bottom: 16px;
+		}
+		#loading-bar-track {
+			width: 60%;
+			max-width: 400px;
+			height: 20px;
+			background: #333;
+			border: 2px solid #666;
+			border-radius: 4px;
+			overflow: hidden;
+		}
+		#loading-bar-fill {
+			width: 0%;
+			height: 100%;
+			background: linear-gradient(90deg, #8b0000, #ff4444);
+			transition: width 0.2s ease;
+		}
+		#loading-info {
+			color: #aaa;
+			font-family: monospace;
+			font-size: 14px;
+			margin-top: 8px;
+		}
+	</style>
 </head>
 <body>
-	<script src="main.js"></script>
-    <div id="loading-text" style="color: white; font-family: cursive; font-size: 48px; text-align: center; margin-top: 20px;">LOADING...</div>
+	<div id="loading-screen">
+		<img id="loading-splash" src="splash.png" alt="">
+		<div id="loading-text">LOADING...</div>
+		<div id="loading-bar-track"><div id="loading-bar-fill"></div></div>
+		<div id="loading-info"></div>
+	</div>
 	<canvas id='canvas'>
 		HTML5 canvas appears to be unsupported in the current browser.<br />
 		Please try updating or use a different browser.
 	</canvas>
-	<div id='status'>
+	<div id='status' style="display:none;">
 		<div id='status-progress' style='display: none;' oncontextmenu='event.preventDefault();'><div id ='status-progress-inner'></div></div>
 		<div id='status-indeterminate' style='display: none;' oncontextmenu='event.preventDefault();'>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
-			<div></div>
+			<div></div><div></div><div></div><div></div>
+			<div></div><div></div><div></div><div></div>
 		</div>
 		<div id='status-notice' class='godot' style='display: none;'></div>
 	</div>
 
 	<script type='text/javascript' src='Endoparasitic.js'></script>
-	<script type='text/javascript'>//<![CDATA[
-
-		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"executable":"Endoparasitic","experimentalVK":false,"fileSizes":{"Endoparasitic.pck":129276352,"Endoparasitic.wasm":17867504},"focusCanvas":true,"gdnativeLibs":[]};
+	<script type='text/javascript'>
+		const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"executable":"Endoparasitic","experimentalVK":false,"fileSizes":{"Endoparasitic.pck":10145712,"Endoparasitic.wasm":23432455},"gdnativeLibs":[]};
 		var engine = new Engine(GODOT_CONFIG);
 
-		window.godotrunfunction = function() {
+		(function() {
 			const INDETERMINATE_STATUS_STEP_MS = 100;
 			var statusProgress = document.getElementById('status-progress');
 			var statusProgressInner = document.getElementById('status-progress-inner');
 			var statusIndeterminate = document.getElementById('status-indeterminate');
 			var statusNotice = document.getElementById('status-notice');
-			document.getElementById("loading-text").remove();
+			var loadingScreen = document.getElementById('loading-screen');
+			var loadingBarFill = document.getElementById('loading-bar-fill');
+			var loadingInfo = document.getElementById('loading-info');
 
 			var initializing = true;
 			var statusMode = 'hidden';
@@ -57,7 +113,6 @@
 			requestAnimationFrame(animate);
 
 			function setStatusMode(mode) {
-
 				if (statusMode === mode || !initializing)
 					return;
 				[statusProgress, statusIndeterminate, statusNotice].forEach(elem => {
@@ -104,7 +159,7 @@
 					statusNotice.appendChild(document.createTextNode(line));
 					statusNotice.appendChild(document.createElement('br'));
 				});
-			};
+			}
 
 			function displayFailureNotice(err) {
 				var msg = err.message || err;
@@ -112,7 +167,7 @@
 				setStatusNotice(msg);
 				setStatusMode('notice');
 				initializing = false;
-			};
+			}
 
 			if (!Engine.isWebGLAvailable()) {
 				displayFailureNotice('WebGL not available');
@@ -121,12 +176,15 @@
 				engine.startGame({
 					'onProgress': function (current, total) {
 						if (total > 0) {
-							statusProgressInner.style.width = current/total * 100 + '%';
+							var pct = current / total;
+							statusProgressInner.style.width = pct * 100 + '%';
 							setStatusMode('progress');
+							loadingBarFill.style.width = pct * 100 + '%';
+							if (loadingInfo) loadingInfo.textContent = 'Loading... ' + Math.round(pct * 100) + '%';
 							if (current === total) {
-								// wait for progress bar animation
 								setTimeout(() => {
 									setStatusMode('indeterminate');
+									loadingScreen.style.display = 'none';
 								}, 500);
 							}
 						} else {
@@ -138,7 +196,7 @@
 					initializing = false;
 				}, displayFailureNotice);
 			}
-		}
-	//]]></script>
+		})();
+	</script>
 </body>
 </html>

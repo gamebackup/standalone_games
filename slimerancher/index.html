@@ -3,16 +3,16 @@ full credit snubby.top
 <html lang="en-us">
 
 <head>
-    <base href="https://cdn.jsdelivr.net/gh/gamebackup/slime-ranchers@main/"> 
+    <!-- base tag removed for offline use --> 
     <meta charset="utf-8">
     <title>Slime Rancher Decompiled v0.2.1</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.0/jquery.min.js"></script>
+    <script type="text/javascript" src="../_vendor/js/jquery-1.6.0.min.js"></script>
     <script src="TemplateData/UnityProgress.js"></script>
     <script src="Build/UnityLoader.js"></script>
     <script src="mobile-controls.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Google Fonts removed for offline use -->
 </head>
 
 <body>
@@ -24,7 +24,7 @@ full credit snubby.top
         <div id="gameContainer" style="width: 960px; height: 600px"></div>
     </div>
     <script src="TemplateData/responsive.js"></script>
-    <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"fbaa20dae499425ebc1908d1e312829f","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+    
 </body>
 <script>
     const ogxhr = window.XMLHttpRequest;
@@ -105,13 +105,11 @@ full credit snubby.top
         }
     }
 
-
     (async () => {
         const allParts = [
             ...getParts("Build/slimeBUILDS.data", 1, 4),
             ...getParts("Build/slimeBUILDS.wasm", 1, 2)
         ];
-
 
         const [dataUrl, wasmUrl] = await Promise.all([
             mergeFiles(getParts("Build/slimeBUILDS.data", 1, 4)),
@@ -151,6 +149,5 @@ full credit snubby.top
         });
     })();
 </script>
-
 
 </html>

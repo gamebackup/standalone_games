@@ -7,7 +7,7 @@
     <meta name="description" content="A falling sand simulation game.">
     <meta name="keywords" content="falling sand, elements, pixel art, simulator, powder">
     <meta name="author" content="R74n">
-    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <!-- Google Fonts removed for offline use -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://R74n.com/load.js"></script>
     <meta http-equiv='content-language' content='en-us'>
@@ -818,7 +818,6 @@
                                 }
                             }
 
-
                         }
                     }
                 }
@@ -996,7 +995,6 @@
                 pixel.temp += info.tempChange;
                 pixelTempCheck(pixel);
             }
-
 
         }
 
@@ -1382,7 +1380,6 @@
 
         // Update stats
 
-
         // On window load, run tick() 20 times per second
         tps = 30;
         tickInterval = window.setInterval(tick, 1000 / tps);
@@ -1579,20 +1576,9 @@
             </div>
     </div>
 
-
     <!-- i like having this but ublock blocks these things anyway -->
     <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-93720349-6"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-        gtag('js', new Date());
-
-        gtag('config', 'UA-93720349-6');
-    </script>
+    <script>window.gtag=function(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag("js",new Date);gtag("config","G-0");</script>
     </h1>
 </body>
 

@@ -6,16 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="keywords" content="Neil Barkhina, Tetris, HtML5, Mobile, Desktop, iPhone, Android, Touch Controls, Keyboard Controls" />   
 	<meta name="description" content="Tetris Game written in Pure HTML, no Canvas. Minimalist Design and Wide browser support accross Desktop and Mobile Devices. Touch and Keyboard Controls." />
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/rivets/0.9.6/rivets.bundled.min.js"></script>
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" >
+    <script src="../_vendor/js/jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="../_vendor/css/bootstrap.min.css">
+    <script src="../_vendor/js/bootstrap.min.js"></script>
+    <script src="../_vendor/js/rivets.bundled.min.js"></script>
+    <link rel="stylesheet" href="../_vendor/css/fontawesome.min.css" >
 </head>
 <script type="text/javascript">
     var rando = Math.floor(Math.random() * 100000);
     var script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js';
+    script.src = '../_vendor/js/require.min.js';
     script.setAttribute("data-main",'config.js?v=' + rando);
     document.getElementsByTagName('head')[0].appendChild(script);
 </script>
@@ -27,7 +27,6 @@ body, html {
 #divMain {
     touch-action: none;
 }
-
 
 .row{
     margin-right: 0px;
@@ -113,7 +112,6 @@ body, html {
 
     </div>
 
-    
 </body>
 
 </html>

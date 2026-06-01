@@ -17,11 +17,11 @@
     <canvas id="jsdos"></canvas>
     <script>
       Dos(document.getElementById("jsdos"), {
-          wdosboxUrl: "https://cheerfulghost.github.io/Freshwater-Fishing-Simulator/wdosbox.js",
+          wdosboxUrl: "wdosbox.js",
           cycles: 1000,
           autolock: false,
       }).ready(function (fs, main) {
-        fs.extract("https://cheerfulghost.github.io/Freshwater-Fishing-Simulator/FISH.zip").then(function () {
+        fs.extract("FISH.zip").then(function () {
           main(["-c", "cd FFS182", "-c", "FISHING.BAT"]).then(function (ci) {
               window.ci = ci;
           });

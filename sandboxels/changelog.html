@@ -3122,7 +3122,6 @@
 
 </div>
 
-
 <script>
     // replaceAll polyfill
     if (!String.prototype.replaceAll) {String.prototype.replaceAll = function(str, newStr){if (Object.prototype.toString.call(str).toLowerCase() === '[object regexp]') {return this.replace(str, newStr);}return this.replace(new RegExp(str, 'g'), newStr);};}
@@ -3138,17 +3137,8 @@
     changelog.innerHTML = html;
 </script>
 
-
-
-
 <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-93720349-9"></script>
-<script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'UA-93720349-9');
-</script>
+<script>window.gtag=function(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag("js",new Date);gtag("config","G-0");</script>
 
 </body>
 

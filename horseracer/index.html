@@ -7,16 +7,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Horse Racer</title>
     <!-- Latest compiled and minified CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../_vendor/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- Latest compiled JavaScript -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../_vendor/js/bootstrap.bundle.min.js"></script>
 
     <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3"></script>
+    <script src="../_vendor/js/vue.global.prod.js"></script>
 
     <!-- Confetti -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script src="../_vendor/js/confetti.browser.min.js"></script>
 
     <style>
         .logo {
@@ -377,7 +377,6 @@
                     return JSON.parse(JSON.stringify(arr))
                 },
 
-                
                 // Returns an array of random, unique positions in the given array
                 getRandomArrayPositions(arr, size) {
                     // Get the maximum position in the array
@@ -399,7 +398,6 @@
                     return positions
                 },
 
-
                 // Initializes the pool of horses that can participate in races
                 initHorsesPool() {
                     // Get a random selection of horses from the full list of horses
@@ -416,7 +414,6 @@
                         this.horses[horseNumber].position = 0
                     }
                 },
-
 
                 // Initializes a new race
                 initRace() {
@@ -457,14 +454,12 @@
                     setTimeout(() => {
                         this.initPopovers()
                     }, 200)
-                    
 
                     // Set the default horses for the new bet form to the first three horses in the race
                     this.newBet.horses[0] = this.race.racingHorses[0]
                     this.newBet.horses[1] = this.race.racingHorses[1]
                     this.newBet.horses[2] = this.race.racingHorses[2]
                 },
-
 
                 // Starts the race
                 startRace() {
@@ -486,7 +481,6 @@
                     }, this.settings.raceIntervalMs) // Run the interval every `raceIntervalMs` milliseconds
                 },
 
-
                 // Moves each horse in the race
                 moveHorses() {
                     // Move each horse in the race
@@ -494,7 +488,6 @@
                         this.moveHorse(horseNumber)
                     }
                 },
-
 
                 // Moves a single horse in the race
                 moveHorse(horseNumber) {
@@ -516,7 +509,6 @@
                     }
                 },
 
-
                 // Record if the horse won or placed in the current race
                 recordHorsesHistory() {
                     for (horse of this.race.racingHorses) {
@@ -528,7 +520,6 @@
                     }
                 },
 
-
                 // Calculates the odds for a horse in the current race
                 getHorseOdds(horseNumber) {
                     // Calculate the odds by dividing the total odds of all other horses by the odds of the specified horse and subtracting 1
@@ -537,7 +528,6 @@
                         .luck)) - 1
                 },
 
-
                 // Places a new bet
                 placeBet() {
                     // Deduct the bet amount from the player's cash
@@ -545,7 +535,6 @@
                     // Add the new bet to the list of bets for the current race
                     this.race.bets.push(this.deepCopy(this.newBet))
                 },
-
 
                 payoutBets() {
                     let payout = 0
@@ -596,7 +585,6 @@
                     return payout
                 },
 
-
                 // Calculate the potential payout for a given bet (if it were successful)
                 calculatePayoutForBet(bet) {
                     
@@ -627,7 +615,6 @@
                     return payout
                 },
 
-
                 // Ensure the amount bet is valid
                 validateNewBetAmount() {
                     if (this.newBet.bet < 1) {
@@ -638,7 +625,6 @@
                         this.newBet.bet = this.cash
                     }
                 },
-
 
                 // Init Bootstrap 5 Popovers
                 initPopovers() {

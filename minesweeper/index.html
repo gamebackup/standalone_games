@@ -21,6 +21,40 @@
         .game-container { display: none; }
         .game-container.active { display: flex; justify-content: center; }
         .game-wrapper { transform: scale(1.8); transform-origin: top center; }
+        .custom-form {
+          background: #c0c0c0;
+          border: 3px inset #eee;
+          padding: 20px;
+          font-family: monospace;
+          font-size: 14px;
+          text-align: center;
+        }
+        .custom-form label { display: inline-block; width: 60px; text-align: right; margin-right: 8px; }
+        .custom-form input {
+          width: 60px;
+          margin-bottom: 8px;
+          border: 2px inset;
+          font-family: monospace;
+          font-size: 14px;
+        }
+        .custom-form .play-btn {
+          background: #c0c0c0;
+          border: 2px solid;
+          border-color: #fff #808080 #808080 #fff;
+          padding: 6px 24px;
+          font-family: monospace;
+          font-size: 14px;
+          cursor: pointer;
+          margin-top: 8px;
+        }
+        .custom-form .play-btn:active {
+          border-color: #808080 #fff #fff #808080;
+        }
+        .custom-form .error {
+          color: #c00;
+          font-weight: bold;
+          margin-top: 4px;
+        }
       </style>
   </head>
   <body style="background-color:#008080;">
@@ -28,6 +62,7 @@
   <button onclick="switchGame('beginner')" id="tab-beginner" class="active">Beginner</button>
   <button onclick="switchGame('intermediate')" id="tab-intermediate">Intermediate</button>
   <button onclick="switchGame('expert')" id="tab-expert">Expert</button>
+  <button onclick="switchGame('custom')" id="tab-custom">Custom</button>
 </div>
 
 <div class="game-container active" id="game-beginner">
@@ -48,6 +83,19 @@
 </div>
 </div>
 
+<div class="game-container" id="game-custom">
+<div class="game-wrapper">
+<div class="custom-form" id="customForm">
+  <div><label>Rows:</label> <input type="number" id="customRows" value="10" min="2" max="99"></div>
+  <div><label>Cols:</label> <input type="number" id="customCols" value="10" min="2" max="99"></div>
+  <div><label>Mines:</label> <input type="number" id="customMines" value="15" min="1" max="9801"></div>
+  <div><button class="play-btn" onclick="startCustomGame()">Play</button></div>
+  <div class="error" id="customError"></div>
+</div>
+<div id="customGameContainer"></div>
+</div>
+</div>
+
 <script src="a70de4b14c0109772a9dc7a4d43a2657210cc7d1.js"></script>
 <script>
 function switchGame(name) {
@@ -59,6 +107,35 @@ function switchGame(name) {
   });
   document.getElementById('game-' + name).classList.add('active');
   document.getElementById('tab-' + name).classList.add('active');
+}
+
+function startCustomGame() {
+  var rows = parseInt(document.getElementById('customRows').value);
+  var cols = parseInt(document.getElementById('customCols').value);
+  var mines = parseInt(document.getElementById('customMines').value);
+  var errorEl = document.getElementById('customError');
+
+  if (isNaN(rows) || rows < 2) { errorEl.textContent = 'Rows must be at least 2'; return; }
+  if (isNaN(cols) || cols < 2) { errorEl.textContent = 'Columns must be at least 2'; return; }
+  if (isNaN(mines) || mines < 1) { errorEl.textContent = 'Must have at least 1 mine'; return; }
+  if (mines >= rows * cols) { errorEl.textContent = 'Too many mines for grid size'; return; }
+
+  errorEl.textContent = '';
+
+  var container = document.getElementById('customGameContainer');
+  container.innerHTML = '';
+
+  var gameDiv = document.createElement('div');
+  gameDiv.className = 'minesweeper-game';
+  gameDiv.setAttribute('data-preset', 'custom');
+  gameDiv.setAttribute('data-dimensions', rows + 'x' + cols);
+  gameDiv.setAttribute('data-mine-count', mines);
+  gameDiv.setAttribute('data-name', 'custom');
+  container.appendChild(gameDiv);
+
+  if (typeof window.initMinesweeper === 'function') {
+    window.initMinesweeper(gameDiv);
+  }
 }
 </script>
 </body>

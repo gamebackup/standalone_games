@@ -1,45 +1,81 @@
 <!DOCTYPE html>
 <html lang="en-us">
-<head>
+  <head>
     <meta charset="utf-8">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Block Blast</title>
-    <link rel="stylesheet" href="TemplateData/style.css">
-    <link rel="icon" type="image/png" href="TemplateData/favicon.ico" />
-    <script src="TemplateData/UnityProgress.js"></script>
-</head>
-<body>
-    <div class="webgl-content">
-        <div id="gameContainer" style="width: 100%; height: 100%;"></div>
-        <div class="footer">
-            <div class="webgl-logo"></div>
-            <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
+    <style>
+      html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+      #unity-container { width: 100vw; height: 100vh; position: relative; }
+      #unity-canvas { width: 100%; height: 100%; display: block; }
+      #unity-loading-bar { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: none; }
+      #unity-progress-bar-empty { width: 280px; height: 18px; background: #444; border-radius: 9px; overflow: hidden; }
+      #unity-progress-bar-full { width: 0%; height: 100%; background: #4caf50; transition: width 0.2s; }
+      #unity-warning { display: none; position: absolute; top: 0; left: 0; right: 0; }
+    </style>
+  </head>
+  <body>
+    <div id="unity-container">
+      <canvas id="unity-canvas"></canvas>
+      <div id="unity-loading-bar">
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
         </div>
+      </div>
+      <div id="unity-warning"></div>
     </div>
-    <script src="Build/BlockBlast1.1-8.loader.js"></script>
     <script>
-        var canvas = document.querySelector("#gameContainer");
-        var progress = new UnityProgress(canvas);
-        var buildUrl = "Build";
-        var config = {
-            dataUrl: buildUrl + "/BlockBlast1.1-8.data.unityweb",
-            frameworkUrl: buildUrl + "/BlockBlast1.1-8.framework.js.unityweb",
-            codeUrl: buildUrl + "/BlockBlast1.1-8.wasm.unityweb",
-            companyName: "Block Blast",
-            productName: "Block Blast",
-            productVersion: "1.1.8",
-        };
-        var gameInstance = createUnityInstance(canvas, config, function(progressValue) {
-            progress.SetProgress(progressValue);
-            if (progressValue === 1) {
-                progress.SetComplete();
-            }
-        }).then(function(instance) {
-            progress.SetComplete();
-        }).catch(function(message) {
-            progress.SetError(message);
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var warningBanner = document.querySelector("#unity-warning");
+
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/BlockBlast1.1-8.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/BlockBlast1.1-8.data.unityweb",
+        frameworkUrl: buildUrl + "/BlockBlast1.1-8.framework.js.unityweb",
+        codeUrl: buildUrl + "/BlockBlast1.1-8.wasm.unityweb",
+        companyName: "Block Blast",
+        productName: "Block Blast",
+        productVersion: "1.1.8",
+        showBanner: unityShowBanner,
+      };
+
+      loadingBar.style.display = "block";
+
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          loadingBar.style.display = "none";
+        }).catch((message) => {
+          alert(message);
         });
+      };
+      document.body.appendChild(script);
     </script>
-</body>
+  </body>
 </html>

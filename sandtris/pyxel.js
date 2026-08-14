@@ -180,6 +180,8 @@ async function launchPyxel(params) {
   window.pyxelContext.params = params;
   window.pyxelContext.hasFatalError = false;
 
+  setTimeout(_clearCrashReloadCount, 60000);
+
   try {
     await _executePyxelCommand(pyodide, params);
   } catch (error) {
@@ -554,7 +556,90 @@ const _formatUnknownError = (error) => {
   return `${name}: ${message}${stack ? `\n${stack}` : ""}`;
 };
 
+const _crashReloadKey = () => {
+  const game = window.pyxelContext?.params?.name || location.pathname.split("/").pop() || "game";
+  return `pyxel-crash-reload-count:${game}`;
+};
+
+const _getCrashReloadCount = () => {
+  try {
+    return Number(sessionStorage.getItem(_crashReloadKey()) || 0);
+  } catch {
+    return null;
+  }
+};
+
+const _clearCrashReloadCount = () => {
+  try {
+    sessionStorage.removeItem(_crashReloadKey());
+  } catch {}
+};
+
+const _isFatalCrash = (error) => {
+  const message = typeof error === "string" ? error : String(error?.message || error);
+  const stack = typeof error === "string" ? "" : String(error?.stack || "");
+  return (
+    message.includes("unreachable executed") ||
+    message.includes("Aborted(") ||
+    message.includes("out of memory") ||
+    message.includes("Cannot enlarge memory") ||
+    /pyodide\.asm|pyodide.*abort/i.test(stack)
+  );
+};
+
+const _appendReloadButton = (overlay) => {
+  const button = document.createElement("button");
+  button.textContent = "Reload game";
+  Object.assign(button.style, {
+    display: "block",
+    marginTop: "12px",
+    padding: "8px 16px",
+    background: "#1a73e8",
+    color: "#fff",
+    border: "none",
+    borderRadius: "4px",
+    fontSize: "14px",
+    cursor: "pointer",
+  });
+  button.onclick = () => location.reload();
+  overlay.appendChild(button);
+};
+
+const _handleFatalCrash = (error) => {
+  window.pyxelContext.hasFatalError = true;
+  const reloadCount = _getCrashReloadCount();
+
+  const retryMessage =
+    "This is a browser memory issue, not a problem with your file.\n" +
+    "Close other tabs to free up memory, then click Reload to try again.";
+
+  if (reloadCount === null) {
+    _displayErrorOverlay(
+      "The game crashed (the Python engine ran out of memory).\n\n" + retryMessage,
+    );
+    _appendReloadButton(document.getElementById("pyxel-error-overlay"));
+    return;
+  }
+
+  if (reloadCount >= 1) {
+    _displayErrorOverlay("The game crashed again.\n\n" + retryMessage);
+    _appendReloadButton(document.getElementById("pyxel-error-overlay"));
+    return;
+  }
+
+  sessionStorage.setItem(_crashReloadKey(), String(reloadCount + 1));
+  _displayErrorOverlay(
+    "The game crashed (the Python engine ran out of memory).\n\nReloading...",
+  );
+  setTimeout(() => location.reload(), 2500);
+};
+
 const _displayFatalErrorOverlay = (error) => {
+  console.error("Fatal error:", error);
+  if (_isFatalCrash(error)) {
+    _handleFatalCrash(error);
+    return;
+  }
   window.pyxelContext.hasFatalError = true;
   _displayErrorOverlay(_formatUnknownError(error));
 };

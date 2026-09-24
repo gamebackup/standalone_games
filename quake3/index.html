@@ -264,26 +264,22 @@
 
 			window.addEventListener("load", function()
 				{
-				// CHECKING IF THE GAME IS NOT RUNNING WITHIN AN IFRAME
-				if (window.top == window.self)
-					{
-					// CLEARING THE SELECTED FILE VALUE
-					document.getElementById("gui_controls_file").value = null;
+				// CLEARING THE SELECTED FILE VALUE
+				document.getElementById("gui_controls_file").value = null;
 
-					// SETTING WHAT WILL HAPPEN WHEN THE USER CLICKS ON THE START AND UPLOAD ICONS
-					document.getElementsByClassName("gui_start")[0].addEventListener("click",function(event){runQuake3()});
-					document.getElementsByClassName("gui_upload")[0].addEventListener("click",function(event){document.getElementById("gui_controls_file").click()});
-					document.getElementsByClassName("gui_download")[0].addEventListener("click",function(event){downloadProfileData()});
+				// SETTING WHAT WILL HAPPEN WHEN THE USER CLICKS ON THE START AND UPLOAD ICONS
+				document.getElementsByClassName("gui_start")[0].addEventListener("click",function(event){runQuake3()});
+				document.getElementsByClassName("gui_upload")[0].addEventListener("click",function(event){document.getElementById("gui_controls_file").click()});
+				document.getElementsByClassName("gui_download")[0].addEventListener("click",function(event){downloadProfileData()});
 
-					// HANDLING THE MOUSE BEHAVIOR
-					setInterval(goBackButtonTimerIncrement, 1000);
-					document.addEventListener("click", mouseChecker, false);
-					document.addEventListener("dblclick", mouseChecker, false);
-					document.addEventListener("mousemove", mouseChecker, false);
-					document.addEventListener("pointerlockchange", mouseChecker, false);
-					document.addEventListener("mozpointerlockchange", mouseChecker, false);
-					document.addEventListener("webkitpointerlockchange", mouseChecker, false);
-					}
+				// HANDLING THE MOUSE BEHAVIOR
+				setInterval(goBackButtonTimerIncrement, 1000);
+				document.addEventListener("click", mouseChecker, false);
+				document.addEventListener("dblclick", mouseChecker, false);
+				document.addEventListener("mousemove", mouseChecker, false);
+				document.addEventListener("pointerlockchange", mouseChecker, false);
+				document.addEventListener("mozpointerlockchange", mouseChecker, false);
+				document.addEventListener("webkitpointerlockchange", mouseChecker, false);
 				});
 
 			window.addEventListener("resize", function()

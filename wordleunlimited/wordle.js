@@ -79,6 +79,15 @@ function intialize() {
     document.addEventListener("keyup", (e) => {
         processInput(e);
     })
+
+    // Embedded in the site's game frame the host page normally keeps keyboard
+    // focus, so guesses typed straight after the game loads went nowhere (no
+    // letters appeared in the tiles). Take focus once the game is up.
+    document.body.tabIndex = -1;
+    try { document.body.focus(); } catch (e) {}
+    document.addEventListener("pointerdown", () => {
+        try { window.focus(); } catch (e) {}
+    });
 }
 
 function processKey() {

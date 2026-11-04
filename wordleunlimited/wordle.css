@@ -10,40 +10,52 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     text-align: center;
     margin: 0;
-    padding: 16px 0;
+    /* The site plays this page in a full-window iframe, so every vertical
+       measurement is capped by vh: with the old fixed 60px tiles the page was
+       ~720px tall and the keyboard fell off the bottom of ordinary laptop
+       windows (it looked like there was no keyboard at all). */
+    padding: min(16px, 1.5vh) 0;
     min-height: 100vh;
     box-sizing: border-box;
 }
 
 hr {
-    width: 500px;
+    width: min(500px, 80vw);
+    margin: min(8px, 1vh) auto;
+    border: 0;
+    border-top: 1px solid #d3d3d3;
 }
 
 #title {
-    font-size: 36px;
+    font-size: min(36px, 4.5vh);
     font-weight: bold;
     letter-spacing: 2px;
+    margin: min(21px, 2vh) 0 min(8px, 1vh);
 }
 
 #board {
-    width: 350px;
-    height: 420px;
+    /* Sized so exactly five tiles fit on a row at any viewport size. */
+    width: calc((min(60px, 7.5vh, 15vw) + 5px) * 5);
+    max-width: 100%;
     margin: 0 auto;
     margin-top: 3px;
     display: flex;
     flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
 }
 
 .tile {
     /* Box */
     border: 2px solid lightgray;
-    width: 60px;
-    height: 60px;
+    box-sizing: border-box;
+    width: min(60px, 7.5vh, 15vw);
+    height: min(60px, 7.5vh, 15vw);
     margin: 2.5px;
 
     /* Text */
     color: black;
-    font-size: 36px;
+    font-size: min(36px, 4.5vh, 15vw);
     font-weight: bold;
     display: flex;
     justify-content: center;
@@ -68,39 +80,45 @@ hr {
     border-color:white;
 }
 
+/* Fixed height so showing "Not in word list" / the answer never pushes the
+   keyboard off-screen. */
+#answer {
+    font-size: min(32px, 4vh);
+    font-weight: bold;
+    line-height: min(43px, 5.5vh);
+    height: min(43px, 5.5vh);
+    margin: min(16px, 1.5vh) 0 0;
+    overflow: hidden;
+}
 
 .keyboard-row {
-    width: 400px;
-
+    width: auto;
+    max-width: 100%;
     margin: 0 auto;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    justify-content: center;
+}
+
+.key-tile,
+.enter-key-tile {
+    height: min(40px, 5vh);
+    margin: 1px;
+    border: 1px solid lightgray;
+    box-sizing: border-box;
+
+    /* Text */
+    font-size: min(20px, 2.6vh);
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .key-tile {
-    width: 36px;
-    height: 40px;
-    margin: 1px;
-    border: 1px solid lightgray;
-
-    /* Text */
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: min(36px, 7.5vw);
 }
 
 .enter-key-tile {
-    width: 76px;
-    height: 40px;
-    margin: 1px;
-    border: 1px solid lightgray;
-
-    /* Text */
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    width: min(76px, 14vw);
 }

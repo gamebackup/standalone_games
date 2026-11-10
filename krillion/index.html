@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Krillion, offline: a rarest-answer dive with a bank of a million accepted answers.">
+<title>Krillion — Offline Deep Dive</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-zone="sunlight">
+
+<svg class="svg-defs" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="krill" viewBox="0 0 140 120">
+      <g stroke-linecap="round" stroke-linejoin="round">
+        <path d="M39 37 C22 22, 10 18, 2 25" fill="none" stroke="#ffc7a8" stroke-width="3.4"/>
+        <path d="M42 34 C30 13, 19 7, 9 9" fill="none" stroke="#ffc7a8" stroke-width="3.4"/>
+        <path d="M40 41 C64 27, 94 40, 107 65 C115 80, 108 94, 95 98 C78 103, 57 94, 47 79 C39 67, 33 55, 40 41 Z" fill="#ff7a5c"/>
+        <path d="M53 41 C47 51, 46 62, 51 74" fill="none" stroke="#c94334" stroke-width="3"/>
+        <path d="M65 38 C61 51, 62 66, 68 82" fill="none" stroke="#c94334" stroke-width="3"/>
+        <path d="M78 39 C78 54, 82 70, 89 86" fill="none" stroke="#c94334" stroke-width="3"/>
+        <path d="M91 46 C94 59, 99 73, 104 85" fill="none" stroke="#c94334" stroke-width="3"/>
+        <path d="M106 67 L130 58 L122 75 L132 87 L106 89 Z" fill="#ffa184"/>
+        <path d="M50 42 L45 33 L55 33 Z" fill="#ffd7c4"/>
+        <circle cx="48" cy="49" r="7.2" fill="#071a22"/>
+        <circle cx="50.5" cy="46.5" r="2.6" fill="#eafcff"/>
+        <path d="M58 84 L51 102 M71 89 L66 106 M84 92 L81 108 M95 92 L95 108" fill="none" stroke="#ffc7a8" stroke-width="3"/>
+        <path d="M61 84 L55 92 M74 89 L69 97 M87 92 L84 100" fill="none" stroke="#ff9d7f" stroke-width="2"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="sea" aria-hidden="true">
+  <div class="water"></div>
+  <div class="surface-glow"></div>
+  <div class="rays"></div>
+  <div class="bubbles" id="bubbles"></div>
+  <div class="snow" id="snow"></div>
+  <div class="vignette"></div>
+</div>
+
+<div class="loader" id="loader">
+  <svg class="krill loader-krill" viewBox="0 0 140 120" aria-hidden="true"><use href="#krill"></use></svg>
+  <p class="loader-title">Unpacking the answer bank</p>
+  <p class="loader-sub" id="loaderSub">1,000,000 answers live in here somewhere.</p>
+  <div class="loader-track"><i></i></div>
+</div>
+
+<header class="topbar">
+  <button class="wordmark" id="homeLink" type="button" aria-label="Krillion home">KRILLION<span>offline</span></button>
+  <div class="topstats">
+    <div class="topstat"><b id="hudDepth">0</b><small>metres</small></div>
+    <div class="topstat best"><b id="hudBest">0</b><small>best</small></div>
+    <button class="iconbtn" id="soundBtn" type="button" aria-pressed="true" title="Toggle sound">
+      <span id="soundIcon">♪</span><span class="sr">Toggle sound</span>
+    </button>
+  </div>
+</header>
+
+<main>
+  <section class="screen menu" id="menu">
+    <div class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">A rarest-answer dive</p>
+        <h1 class="logo">KRILLION</h1>
+        <p class="tagline">Everyone knows the obvious answer.<br><em>You need the one nobody else gives.</em></p>
+        <div class="bankline">
+          <span><b id="bankPrompts">—</b> prompts</span>
+          <span><b id="bankAnswers">—</b> accepted answers</span>
+          <span><b>100%</b> offline</span>
+        </div>
+      </div>
+      <div class="hero-krill">
+        <div class="krill-halo"></div>
+        <svg class="krill mascot" viewBox="0 0 140 120" aria-hidden="true"><use href="#krill"></use></svg>
+        <span class="bubble b1"></span><span class="bubble b2"></span><span class="bubble b3"></span>
+      </div>
+    </div>
+
+    <div class="modes">
+      <button class="mode-card classic" type="button" data-mode="classic">
+        <span class="mode-kicker">The original dive</span>
+        <span class="mode-top"><span class="mode-name">Classic</span><span class="mode-arrow">↘</span></span>
+        <span class="mode-desc">Seven prompts. Twenty-five seconds each. One perfect dive is 7,000&nbsp;m.</span>
+        <span class="mode-specs"><span>7 prompts</span><span>25 s each</span><span>700 max</span></span>
+        <span class="mode-cta">Begin descent</span>
+      </button>
+      <button class="mode-card endless" type="button" data-mode="endless">
+        <span class="mode-kicker">No floor</span>
+        <span class="mode-top"><span class="mode-name">Endless</span><span class="mode-arrow">↘</span></span>
+        <span class="mode-desc">One prompt at a time. Three tanks of air. A One in a Krillion buys one back.</span>
+        <span class="mode-specs"><span>3 tanks</span><span>harder as you sink</span><span>no bottom</span></span>
+        <span class="mode-cta">Begin descent</span>
+      </button>
+    </div>
+
+    <div class="menu-foot">
+      <details class="how">
+        <summary><span>How to play</span><span class="plus">+</span></summary>
+        <div class="how-body">
+          <p>Each prompt has one open question and a bank of accepted answers. Type an answer and press <kbd>Enter</kbd>. Your <strong>first accepted answer ends the prompt</strong>, so reach for the rarest one you are sure of.</p>
+          <p>Answers are graded by how likely people are to give them. Every point sinks the krill <strong>10&nbsp;metres</strong>. Speed earns nothing — the clock only decides whether you answer at all. A refusal costs only time: try again until the clock runs out.</p>
+          <div class="tier-table" id="tierTable"></div>
+          <p class="how-note">The bank holds <b id="howAnswers">—</b> accepted answers across <b id="howPrompts">—</b> prompts. Small typos, plurals and missing punctuation are forgiven. Answers outside the bank are refused — there is no AI and no crowd, so the bank is the whole ocean.</p>
+          <p class="how-note">This is an unofficial offline tribute. Prompts and answer grades are built from publicly released Krillion reveal data; it is not affiliated with Daily or the original game.</p>
+        </div>
+      </details>
+      <p class="fineprint">Deepest dive: <b id="menuBest">0 m</b> · Runs: <b id="menuRuns">0</b></p>
+    </div>
+  </section>
+
+  <section class="screen game" id="game" hidden>
+    <div class="dive-meta">
+      <span class="pill" id="modeLabel">Classic</span>
+      <span class="muted" id="promptCounter">Prompt 1 / 7</span>
+      <span class="tanks" id="tanks" aria-label="Air tanks"></span>
+      <button class="textbtn" id="quitBtn" type="button">Surface</button>
+    </div>
+
+    <div class="depth-strip">
+      <div class="depth-main">
+        <div class="depth-num"><span id="depth">0</span><small>m</small></div>
+        <div class="zone"><span id="zoneName">Sunlight Zone</span><small id="zoneSub">Epipelagic</small></div>
+      </div>
+      <div class="depth-track"><i id="depthFill"></i><span class="depth-thumb" id="depthThumb"></span></div>
+      <div class="depth-ends"><span>surface</span><span id="depthGoal">7,000 m</span></div>
+    </div>
+
+    <div class="prompt-card" id="promptCard">
+      <div class="category" id="category">Animals &amp; Nature</div>
+      <h2 id="promptText">Name a bird of prey</h2>
+      <div class="answer-row">
+        <label class="sr" for="answerInput">Your answer</label>
+        <input id="answerInput" type="text" maxlength="100" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type the rarest answer you know…">
+        <button class="primary dive-btn" id="diveBtn" type="button">Dive</button>
+      </div>
+      <div class="timer">
+        <div class="timer-bar"><i id="timerFill"></i></div>
+        <span class="timer-num" id="timerNum">25</span>
+      </div>
+      <p class="feedback" id="feedback" aria-live="polite"></p>
+      <div class="prompt-actions">
+        <button class="ghost small" id="passBtn" type="button">Pass</button>
+        <span class="bank-count" id="bankCount"></span>
+      </div>
+    </div>
+
+    <div class="depth-caption">
+      <span class="krill-mini"><svg class="krill" viewBox="0 0 140 120" aria-hidden="true"><use href="#krill"></use></svg></span>
+      <span id="depthCaption">The surface is still close.</span>
+    </div>
+  </section>
+
+  <section class="screen results" id="results" hidden>
+    <p class="eyebrow" id="resultEyebrow">Classic dive complete</p>
+    <div class="result-depth"><span id="resultDepth">0</span><small>m</small></div>
+    <h2 id="resultTitle">You stayed at the surface.</h2>
+    <p class="result-sub" id="resultSub"></p>
+    <div class="newbest" id="newBest" hidden>New personal best</div>
+    <div class="result-grid" id="resultGrid"></div>
+    <div class="result-actions">
+      <button class="primary" id="againBtn" type="button">Dive again</button>
+      <button class="ghost" id="menuBtn" type="button">Surface</button>
+      <button class="ghost" id="copyBtn" type="button">Copy result</button>
+    </div>
+  </section>
+</main>
+
+<div class="tier-overlay" id="tierOverlay" hidden>
+  <div class="tier-card" id="tierCard" role="dialog" aria-modal="true" aria-labelledby="tierName">
+    <svg class="krill tier-krill" viewBox="0 0 140 120" aria-hidden="true"><use href="#krill"></use></svg>
+    <p class="tier-kicker" id="tierKicker">Accepted</p>
+    <h3 id="tierName">Rare</h3>
+    <div class="tier-points"><b id="tierPoints">60</b><span>points</span><small id="tierMetres">+600 m</small></div>
+    <p class="tier-answer" id="tierAnswer"></p>
+    <p class="tier-note" id="tierNote"></p>
+    <button class="primary" id="tierNext" type="button">Dive on</button>
+  </div>
+</div>
+
+<noscript><p class="noscript">This dive needs JavaScript, but it never needs the internet.</p></noscript>
+
+<script src="data.js" defer></script>
+<script src="game.js" defer></script>
+</body>
+</html>

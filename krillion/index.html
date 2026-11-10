@@ -6,8 +6,9 @@
 <meta name="description" content="Krillion, offline: a rarest-answer dive with a bank of a million accepted answers.">
 <title>Krillion - Fanmade Deep Dive</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="arcade.css">
 </head>
-<body data-zone="sunlight">
+<body data-zone="sunlight" data-screen="menu">
 
 <svg class="svg-defs" aria-hidden="true" focusable="false">
   <defs>
@@ -47,6 +48,15 @@
   <div class="loader-track"><i></i></div>
 </div>
 
+<header class="sitebar" aria-label="Daily game header">
+  <div class="sitebar-brand">
+    <span class="daily-mark" aria-hidden="true"></span>
+    <span class="game-name">Krillion</span>
+    <span class="offline-tag">offline</span>
+  </div>
+  <p class="sitebar-note">A rare answer dive</p>
+</header>
+
 <header class="topbar">
   <button class="wordmark" id="homeLink" type="button" aria-label="Krillion home">KRILLION<span>offline</span></button>
   <div class="topstats">
@@ -66,9 +76,6 @@
         <h1 class="logo">KRILLION</h1>
         <p class="tagline">Everyone knows the obvious answer.<br><em>You need the one nobody else gives.</em></p>
         <div class="bankline">
-
-
-
         </div>
       </div>
       <div class="hero-krill">
@@ -109,46 +116,97 @@
     </div>
   </section>
 
-  <section class="screen game" id="game" hidden>
-    <div class="dive-meta">
-      <span class="pill" id="modeLabel">Classic</span>
-      <span class="muted" id="promptCounter">Prompt 1 / 7</span>
-      <span class="tanks" id="tanks" aria-label="Air tanks"></span>
-      <button class="textbtn" id="quitBtn" type="button">Surface</button>
-    </div>
+  <section class="screen arcade" id="game" hidden>
+    <div class="dive-frame" id="diveFrame">
+      <canvas class="ocean-canvas" id="oceanCanvas" width="281" height="290" aria-hidden="true"></canvas>
+      <div class="scanlines" aria-hidden="true"></div>
 
-    <div class="depth-strip">
-      <div class="depth-main">
-        <div class="depth-num"><span id="depth">0</span><small>m</small></div>
-        <div class="zone"><span id="zoneName">Sunlight Zone</span><small id="zoneSub">Epipelagic</small></div>
+      <div class="hud">
+        <div class="hud-depth">
+          <span>DEPTH</span>
+          <b><i id="depth">0</i><em>m</em></b>
+        </div>
+        <div class="segments" id="promptSegs" aria-hidden="true"></div>
+        <div class="hud-actions">
+          <span class="tanks" id="tanks" aria-label="Air tanks"></span>
+          <button class="pix-key icon" id="gameSoundBtn" type="button" aria-pressed="true" title="Toggle sound">
+            <svg class="sound-glyph" viewBox="0 0 10 8" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 2h2v3H0zM2 1h2v5H2zM4 0h2v7H4z"/><path d="M7 1h1v1H7zM8 2h1v3H8zM7 5h1v1H7z"/></svg>
+            <span id="gameSoundIcon" class="sr">Sound on</span>
+          </button>
+          <button class="pix-key quit" id="quitBtn" type="button">QUIT</button>
+        </div>
       </div>
-      <div class="depth-track"><i id="depthFill"></i><span class="depth-thumb" id="depthThumb"></span></div>
-      <div class="depth-ends"><span>surface</span><span id="depthGoal">7,000 m</span></div>
-    </div>
 
-    <div class="prompt-card" id="promptCard">
-      <div class="category" id="category">Animals &amp; Nature</div>
-      <h2 id="promptText">Name a bird of prey</h2>
-      <div class="answer-row">
-        <label class="sr" for="answerInput">Your answer</label>
-        <input id="answerInput" type="text" maxlength="100" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type the rarest answer you know…">
-        <button class="primary dive-btn" id="diveBtn" type="button">Dive</button>
+      <div class="ruler" aria-hidden="true">
+        <div class="ruler-ticks" id="rulerTicks"></div>
+        <span class="ruler-line"></span>
+        <span class="ruler-marker" id="depthMarker"><b id="depthMarkerLabel">0m</b></span>
       </div>
-      <div class="timer">
-        <div class="timer-bar"><i id="timerFill"></i></div>
-        <span class="timer-num" id="timerNum">25</span>
+
+      <div class="dive-stage">
+        <div class="pixel-card" id="promptCard">
+          <div class="card-top">
+            <span class="category" id="category">Animals &amp; Nature</span>
+            <span class="mode-tag" id="modeLabel">CLASSIC</span>
+          </div>
+          <h2 id="promptText">Name a bird of prey</h2>
+          <p class="card-hint">▼ rarer answers sink deeper ▼</p>
+        </div>
+        <div class="sr" id="promptCounter">Prompt 1 / 7</div>
+        <div class="zone-readout"><b id="zoneName">Sunlight Zone</b><span id="zoneSub">Epipelagic · 0–200 m</span></div>
       </div>
+
+      <div class="answer-dock" id="answerDock">
+        <div class="timer dial" id="timer">
+          <span class="timer-num" id="timerNum">25</span>
+          <div class="timer-bar"><i id="timerFill"></i></div>
+        </div>
+        <input id="answerInput" type="text" maxlength="100" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type one answer…" aria-label="Your answer">
+        <button class="pix-key pass" id="passBtn" type="button">PASS</button>
+        <button class="pix-key dive-btn" id="diveBtn" type="button">DIVE</button>
+      </div>
+
       <p class="feedback" id="feedback" aria-live="polite"></p>
-      <div class="prompt-actions">
-        <button class="ghost small" id="passBtn" type="button">Pass</button>
-        <span class="bank-count" id="bankCount"></span>
+
+      <div class="sr">
+        <span id="depthCaption">The surface is still close.</span>
+        <span id="bankCount" class="bank-count"></span>
+        <span id="depthGoal">7,000 m</span>
+        <i id="depthFill"></i><i id="depthThumb"></i>
+      </div>
+
+      <div class="tier-overlay reveal-layer" id="tierOverlay" hidden>
+        <div class="reveal-card" id="tierCard" role="dialog" aria-modal="true" aria-labelledby="tierName">
+          <div class="reveal-bloom" aria-hidden="true"></div>
+          <div class="reveal-art" aria-hidden="true">
+            <svg class="pixel-icon" viewBox="0 0 24 20" width="48" height="40" shape-rendering="crispEdges">
+              <path class="icon-halo" d="M9 1h6v1H9zM6 2h12v1H6zM4 3h16v1H4zM3 4h18v6H3zM4 10h16v2H4zM6 12h12v1H6z"/>
+              <path class="icon-line" d="M9 1h6v1H9zM6 2h3v1H6zM15 2h3v1h-3zM4 3h2v1H4zM18 3h2v1h-2zM3 4h1v7H3zM20 4h1v7h-1zM4 10h3v1H4zM17 10h3v1h-3zM7 11h2v1H7zM10 11h4v1h-4zM15 11h2v1h-2zM21 2h1v1h-1zM2 8h1v1H2z"/>
+              <path class="icon-body" d="M9 2h6v1H9zM6 3h12v1H6zM4 4h16v5H4zM5 9h14v1H5zM7 10h10v1H7z"/>
+              <path class="icon-shade" d="M4 4h4v5H4zM5 9h4v1H5zM7 10h4v1H7z"/>
+              <path class="icon-lit" d="M8 2h4v1H8zM6 3h3v1H6zM5 4h3v2H5zM13 8h6v1h-6z"/>
+              <path class="icon-white" d="M8 5h2v1H8zM14 5h2v1h-2z"/>
+              <path class="icon-line" d="M7 12h1v2H7zM6 14h1v1H6zM7 15h1v2H7zM10 12h1v3h-1zM11 15h1v2h-1zM10 17h1v1h-1zM13 12h1v2h-1zM14 14h1v1h-1zM13 15h1v2h-1zM16 12h1v3h-1zM15 15h1v2h-1zM16 17h1v1h-1z"/>
+            </svg>
+          </div>
+          <p class="reveal-kicker" id="tierKicker" hidden>ACCEPTED</p>
+          <h3 id="tierName">Rare</h3>
+          <div class="reveal-meter" id="tierMeter" aria-hidden="true">
+            <span>COMMON</span>
+            <div class="pips"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <span>RARE</span>
+          </div>
+          <p class="reveal-answer" id="tierAnswer"></p>
+          <p class="reveal-points"><b id="tierPoints">+60 PTS</b><span>· sink <small id="tierMetres">600m</small></span><span class="gain-chip"><em id="tierGain">+600</em><svg class="depth-token" viewBox="0 0 9 8" width="18" height="16" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 1h3v1H3zM2 2h5v1H2zM1 3h7v2H1zM2 5h5v1H2zM3 6h3v1H3z" fill="#0a3a48"/><path d="M3 3h1v1H3zM2 5h1v1H2z" fill="#c9f7ff"/><path d="M4 2h2v1H4z" fill="#4de3ff"/></svg></span></p>
+          <p class="reveal-note" id="tierNote"></p>
+        </div>
+        <button class="pix-key next" id="tierNext" type="button">NEXT ▸</button>
       </div>
     </div>
-
-    <div class="depth-caption">
-      <span class="krill-mini"><svg class="krill" viewBox="0 0 140 120" aria-hidden="true"><use href="#krill"></use></svg></span>
-      <span id="depthCaption">The surface is still close.</span>
-    </div>
+    <footer class="game-foot">
+      <p class="foot-brand"><b>KRILLION</b><span>An offline tribute</span></p>
+      <p class="foot-note"><i aria-hidden="true"></i>No ads · No network · No tracking</p>
+    </footer>
   </section>
 
   <section class="screen results" id="results" hidden>
@@ -165,18 +223,6 @@
     </div>
   </section>
 </main>
-
-<div class="tier-overlay" id="tierOverlay" hidden>
-  <div class="tier-card" id="tierCard" role="dialog" aria-modal="true" aria-labelledby="tierName">
-    <svg class="krill tier-krill" viewBox="0 0 140 120" aria-hidden="true"><use href="#krill"></use></svg>
-    <p class="tier-kicker" id="tierKicker">Accepted</p>
-    <h3 id="tierName">Rare</h3>
-    <div class="tier-points"><b id="tierPoints">60</b><span>points</span><small id="tierMetres">+600 m</small></div>
-    <p class="tier-answer" id="tierAnswer"></p>
-    <p class="tier-note" id="tierNote"></p>
-    <button class="primary" id="tierNext" type="button">Dive on</button>
-  </div>
-</div>
 
 <noscript><p class="noscript">This dive needs JavaScript, but it never needs the internet.</p></noscript>
 

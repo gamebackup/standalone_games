@@ -14,14 +14,15 @@
   const LONG_GOAL = 250000; // 250 km, the end of the drawn ocean
 
   const TIERS = {
-    100: { name: "One in a Krillion", color: "#ffd166", note: "The one nobody else reached. In Endless, this buys a tank of air back." },
-    85:  { name: "Deep Cut",         color: "#c3a7ff", note: "A specialist's answer. The swarm never got this far." },
-    60:  { name: "Rare",             color: "#7bf1d0", note: "Rare air. Most players stop two thoughts earlier." },
-    30:  { name: "Schooler",         color: "#9be38a", note: "A solid answer, but the school knows it too." },
-    15:  { name: "Too Clever",       color: "#ffb36b", note: "The second thought everyone shares. It feels rarer than it is." },
-    10:  { name: "Plankton",         color: "#9fb8c4", note: "The first answer anyone gives. The current barely notices." },
+    100: { name: "One in a Krillion", color: "#ffd166", note: "Nobody else is down here." },
+    85:  { name: "Deep Cut",         color: "#ff5252", note: "True obscurity. Few go this deep." },
+    60:  { name: "Rare",             color: "#ff9f43", note: "Few would reach for that." },
+    30:  { name: "Schooler",         color: "#5ad07a", note: "Known, but not the first thing said." },
+    15:  { name: "Too Clever",       color: "#4de3ff", note: "The clever pick. The school thought of it too." },
+    10:  { name: "Plankton",         color: "#5b87f5", note: "Everyone said it. You drift." },
   };
   const SCORE_ORDER = [100, 85, 60, 30, 15, 10];
+  const TIER_KEYS = { 100: "krillion", 85: "deepcut", 60: "rare", 30: "schooler", 15: "tooclever", 10: "plankton" };
 
   const ZONES = [
     { key: "sunlight", max: 200,   name: "Sunlight Zone", sub: "Epipelagic · 0–200 m",             caption: "Light still reaches you." },
@@ -39,16 +40,19 @@
     bankPrompts: $("bankPrompts"), bankAnswers: $("bankAnswers"), howAnswers: $("howAnswers"), howPrompts: $("howPrompts"),
     menuBest: $("menuBest"), menuRuns: $("menuRuns"), hudDepth: $("hudDepth"), hudBest: $("hudBest"),
     soundBtn: $("soundBtn"), soundIcon: $("soundIcon"), homeLink: $("homeLink"),
+    gameSoundBtn: $("gameSoundBtn"), gameSoundIcon: $("gameSoundIcon"),
+    promptSegs: $("promptSegs"), answerDock: $("answerDock"),
     modeLabel: $("modeLabel"), promptCounter: $("promptCounter"), tanks: $("tanks"), quitBtn: $("quitBtn"),
     depth: $("depth"), zoneName: $("zoneName"), zoneSub: $("zoneSub"), depthFill: $("depthFill"),
     depthThumb: $("depthThumb"), depthGoal: $("depthGoal"), depthCaption: $("depthCaption"),
+    depthMarker: $("depthMarker"), depthMarkerLabel: $("depthMarkerLabel"), rulerTicks: $("rulerTicks"),
     promptCard: $("promptCard"), category: $("category"), promptText: $("promptText"),
     answerInput: $("answerInput"), diveBtn: $("diveBtn"), passBtn: $("passBtn"),
     timer: document.querySelector(".timer"), timerFill: $("timerFill"), timerNum: $("timerNum"),
-    feedback: $("feedback"), bankCount: $("bankCount"),
+    feedback: $("feedback"), bankCount: $("bankCount"), oceanCanvas: $("oceanCanvas"),
     tierOverlay: $("tierOverlay"), tierCard: $("tierCard"), tierKicker: $("tierKicker"),
-    tierName: $("tierName"), tierPoints: $("tierPoints"), tierMetres: $("tierMetres"),
-    tierAnswer: $("tierAnswer"), tierNote: $("tierNote"), tierNext: $("tierNext"),
+    tierName: $("tierName"), tierPoints: $("tierPoints"), tierMetres: $("tierMetres"), tierGain: $("tierGain"),
+    tierAnswer: $("tierAnswer"), tierNote: $("tierNote"), tierNext: $("tierNext"), tierMeter: $("tierMeter"),
     resultEyebrow: $("resultEyebrow"), resultDepth: $("resultDepth"), resultTitle: $("resultTitle"),
     resultSub: $("resultSub"), newBest: $("newBest"), resultGrid: $("resultGrid"),
     againBtn: $("againBtn"), menuBtn: $("menuBtn"), copyBtn: $("copyBtn"),
@@ -56,7 +60,7 @@
   };
 
   const save = loadSave();
-  const state = { run: null, raf: 0, depthRaf: 0, overlayTimer: 0, overlayOpen: false, lastMode: "classic" };
+  const state = { run: null, raf: 0, depthRaf: 0, overlayTimer: 0, revealDelay: 0, overlayOpen: false, lastMode: "classic", oceanRaf: 0, oceanLast: 0, cameraDepth: 0, cameraTarget: 0, rulerBase: -1 };
   let PROMPTS = [];
   let DIFFICULTY = [];
 
@@ -122,6 +126,21 @@
   };
 
   /* ---------------- text / bank helpers ---------------- */
+  function syncSoundUI() {
+    [els.soundBtn, els.gameSoundBtn].forEach((btn) => {
+      if (btn) btn.setAttribute("aria-pressed", String(sound.enabled));
+    });
+    [els.soundIcon, els.gameSoundIcon].forEach((icon) => {
+      if (icon) icon.textContent = sound.enabled ? "♪" : "×";
+    });
+  }
+  function toggleSound() {
+    sound.enabled = !sound.enabled;
+    save.sound = sound.enabled;
+    persist();
+    syncSoundUI();
+    if (sound.enabled) { sound.unlock(); sound.click(); }
+  }
   function fmt(n) { return Math.round(n).toLocaleString("en-US"); }
   function setText(el, value) { if (el) el.textContent = value; }
   function countLines(s) {
@@ -262,6 +281,26 @@
   }
 
   /* ---------------- depth display ---------------- */
+  function rulerBaseFor(v) {
+    return Math.max(0, Math.floor((Number(v) || 0) / 100) * 100 - 100);
+  }
+  function depthRulerPct(v) {
+    const d = Math.max(0, Number(v) || 0);
+    const base = rulerBaseFor(d);
+    return 16.4 + Math.min(4, Math.max(0, (d - base) / 100)) * 20;
+  }
+  function renderRulerTicks(v) {
+    if (!els.rulerTicks) return;
+    const base = rulerBaseFor(v);
+    if (state.rulerBase === base) return;
+    state.rulerBase = base;
+    let html = "";
+    for (let i = 0; i < 5; i++) {
+      const depth = base + i * 100;
+      html += `<span style="top:${(16.4 + i * 20).toFixed(1)}%">${fmt(depth)}m</span>`;
+    }
+    els.rulerTicks.innerHTML = html;
+  }
   function setDepthDisplay(v) {
     const z = zoneFor(v);
     els.depth.textContent = fmt(v);
@@ -277,19 +316,31 @@
     } else {
       pct = Math.min(100, (v / (CLASSIC_PROMPTS * 100 * 10)) * 100);
     }
-    els.depthFill.style.width = pct.toFixed(2) + "%";
-    els.depthThumb.style.left = pct.toFixed(2) + "%";
+    if (els.depthFill) els.depthFill.style.width = pct.toFixed(2) + "%";
+    if (els.depthThumb) els.depthThumb.style.left = pct.toFixed(2) + "%";
+    renderRulerTicks(v);
+    if (els.depthMarker) {
+      const markerPct = depthRulerPct(v);
+      els.depthMarker.style.top = markerPct.toFixed(2) + "%";
+    }
+    if (els.depthMarkerLabel) els.depthMarkerLabel.textContent = fmt(v) + "m";
   }
   function animateDepth(from, to) {
     cancelAnimationFrame(state.depthRaf);
     const start = performance.now();
-    const dur = 900;
+    const dur = 2600;
+    state.cameraTarget = to;
+    state.cameraDepth = from;
     const step = (now) => {
       const t = Math.min(1, (now - start) / dur);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setDepthDisplay(from + (to - from) * eased);
+      const eased = t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      state.cameraDepth = from + (to - from) * eased;
+      setDepthDisplay(state.cameraDepth);
       if (t < 1) state.depthRaf = requestAnimationFrame(step);
-      else setDepthDisplay(to);
+      else {
+        state.cameraDepth = to;
+        setDepthDisplay(to);
+      }
     };
     state.depthRaf = requestAnimationFrame(step);
   }
@@ -330,6 +381,8 @@
     els.menu.hidden = name !== "menu";
     els.game.hidden = name !== "game";
     els.results.hidden = name !== "results";
+    document.body.dataset.screen = name;
+    if (name === "game") startOcean(); else stopOcean();
     window.scrollTo(0, 0);
   }
   function updateBest() {
@@ -352,6 +405,7 @@
     c.deadline = performance.now() + PROMPT_MS;
     c.lastSec = -1;
     els.timer.classList.remove("urgent");
+    els.timer.style.setProperty("--pct", "100");
     els.timerFill.style.width = "100%";
     els.timerNum.textContent = String(Math.round(PROMPT_MS / 1000));
     runTimer();
@@ -364,7 +418,9 @@
       if (!c || c.locked) return;
       const rem = Math.max(0, c.deadline - performance.now());
       c.remaining = rem;
-      els.timerFill.style.width = ((rem / PROMPT_MS) * 100).toFixed(2) + "%";
+      const pct = (rem / PROMPT_MS) * 100;
+      els.timer.style.setProperty("--pct", pct.toFixed(2));
+      els.timerFill.style.width = pct.toFixed(2) + "%";
       const sec = Math.ceil(rem / 1000);
       if (sec !== c.lastSec) {
         c.lastSec = sec;
@@ -394,6 +450,8 @@
     sound.unlock();
     sound.click();
     closeTier(false);
+    state.cameraDepth = 0;
+    state.cameraTarget = 0;
     state.run = {
       mode,
       index: 0,
@@ -427,13 +485,17 @@
     els.promptText.textContent = p.q;
     els.answerInput.value = "";
     els.answerInput.disabled = false;
+    els.answerInput.classList.remove("bad");
     els.promptCard.classList.remove("shake", "accept");
+    els.game.classList.remove("revealing");
+    els.tierOverlay.hidden = true;
     els.feedback.textContent = "";
     els.feedback.className = "feedback";
     els.bankCount.innerHTML = "<b>" + fmt(p.total) + "</b> answers in this bank";
     els.promptCounter.textContent = run.mode === "classic"
       ? `Prompt ${run.index + 1} / ${CLASSIC_PROMPTS}`
       : `Dive ${run.index + 1}`;
+    renderPromptSegs(run);
     renderTanks();
     startTimer();
     setTimeout(() => { if (state.run === run && !run.current.locked) els.answerInput.focus({ preventScroll: true }); }, 40);
@@ -449,6 +511,36 @@
       html += `<i class="${full ? "" : "empty"}${refill && i === run.tanks - 1 ? " refill" : ""}" title="${full ? "Air" : "Empty"}"></i>`;
     }
     els.tanks.innerHTML = html;
+  }
+
+  function renderPromptSegs(run) {
+    if (!els.promptSegs) return;
+    const entries = [];
+    if (run.mode === "classic") {
+      for (let i = 0; i < CLASSIC_PROMPTS; i++) {
+        entries.push({ result: run.results[i] || null, now: !run.results[i] && i === run.index });
+      }
+    } else {
+      const recent = run.results.slice(-CLASSIC_PROMPTS);
+      for (let i = 0; i < CLASSIC_PROMPTS; i++) {
+        entries.push({ result: recent[i] || null, now: i === recent.length });
+      }
+    }
+    let html = "";
+    entries.forEach(({ result, now }) => {
+      let attrs = "";
+      if (result && result.score) {
+        const tier = TIERS[result.score];
+        attrs = ` data-tier="${TIER_KEYS[result.score]}" title="${tier.name} · ${result.score} pts"`;
+      } else if (result) {
+        attrs = " data-tier=\"miss\" title=\"No scoring answer\"";
+      } else if (now) {
+        attrs = " data-now=\"true\"";
+      }
+      html += `<i${attrs}></i>`;
+    });
+    const label = run.mode === "classic" ? `Prompt ${run.index + 1} of ${CLASSIC_PROMPTS}` : `Prompt ${run.index + 1}`;
+    els.promptSegs.innerHTML = `<span class="seg-pips">${html}</span><span class="seg-label">${label}</span>`;
   }
 
   function submitAnswer(auto) {
@@ -467,10 +559,10 @@
     if (hit) { acceptAnswer(hit, raw); return; }
     if (auto) { finishMiss("time"); return; }
     els.feedback.className = "feedback bad";
-    els.feedback.textContent = "Not in this bank. Try another angle — or a different spelling.";
-    els.promptCard.classList.remove("shake");
-    void els.promptCard.offsetWidth;
-    els.promptCard.classList.add("shake");
+    els.feedback.textContent = "Not an answer to that prompt. Try another angle.";
+    els.answerInput.classList.remove("bad");
+    void els.answerInput.offsetWidth;
+    els.answerInput.classList.add("bad");
     sound.refuse();
     els.answerInput.select();
   }
@@ -491,11 +583,12 @@
       renderTanks(true);
     }
     run.results.push({ q: c.p.q, cat: c.p.cat, answer: hit.a, raw, score: hit.s, fuzzy: !!hit.fuzzy });
-    els.promptCard.classList.add("accept");
+    renderPromptSegs(run);
+    els.answerInput.classList.remove("bad");
     els.feedback.className = "feedback good";
     els.feedback.textContent = "Accepted. " + (hit.fuzzy ? "Close spelling forgiven." : "");
     sound.accept(hit.s);
-    animateDepth(run.depth - hit.s * 10, run.depth);
+    animateDepth(state.cameraDepth, run.depth);
     showTier(hit, refilled, beforeZone !== afterZone ? afterZone : null);
   }
 
@@ -507,6 +600,7 @@
     stopTimer();
     const raw = els.answerInput.value.trim();
     run.results.push({ q: c.p.q, cat: c.p.cat, answer: raw || null, score: 0, miss: reason });
+    renderPromptSegs(run);
     if (run.mode === "endless") {
       run.tanks = Math.max(0, run.tanks - 1);
       renderTanks();
@@ -554,32 +648,47 @@
 
   /* ---------------- tier reveal ---------------- */
   function showTier(hit, refilled, newZone) {
+    const run = state.run;
     const t = TIERS[hit.s];
     els.tierCard.style.setProperty("--tier-color", t.color);
-    els.tierKicker.textContent = hit.fuzzy ? "Close spelling accepted" : "Accepted";
+    els.tierKicker.hidden = true;
     els.tierName.textContent = t.name;
-    els.tierPoints.textContent = String(hit.s);
-    els.tierMetres.textContent = "+" + fmt(hit.s * 10) + " m";
+    els.tierPoints.textContent = "+" + hit.s + " PTS";
+    els.tierMetres.textContent = fmt(hit.s * 10) + "m";
+    if (els.tierGain) els.tierGain.textContent = "+" + fmt(hit.s * 10);
     els.tierAnswer.textContent = "“" + hit.a + "”";
+    const lit = Math.max(1, 6 - SCORE_ORDER.indexOf(hit.s));
+    if (els.tierMeter) {
+      [...els.tierMeter.querySelectorAll("i")].forEach((pip, i) => {
+        pip.toggleAttribute("data-lit", i < lit);
+      });
+    }
     let note = t.note;
     if (newZone) note += " You crossed into the " + newZone + ".";
     if (refilled) note += " One tank of air refilled.";
     els.tierNote.textContent = note;
-    els.tierOverlay.hidden = false;
-    state.overlayOpen = true;
+
+    clearTimeout(state.revealDelay);
     clearTimeout(state.overlayTimer);
-    state.overlayTimer = setTimeout(() => closeTier(true), 4200);
-    setTimeout(() => { try { els.tierNext.focus({ preventScroll: true }); } catch (e) {} }, 30);
+    state.overlayOpen = false;
+    els.tierOverlay.hidden = true;
+    els.game.classList.add("revealing");
+    els.answerInput.blur();
+
+    state.revealDelay = setTimeout(() => {
+      if (!run || state.run !== run || run.done) return;
+      els.tierOverlay.hidden = false;
+      state.overlayOpen = true;
+      setTimeout(() => { try { els.tierNext.focus({ preventScroll: true }); } catch (e) {} }, 30);
+    }, 220);
   }
 
   function closeTier(go) {
-    if (!state.overlayOpen) {
-      els.tierOverlay.hidden = true;
-      return;
-    }
-    state.overlayOpen = false;
+    clearTimeout(state.revealDelay);
     clearTimeout(state.overlayTimer);
+    state.overlayOpen = false;
     els.tierOverlay.hidden = true;
+    els.game.classList.remove("revealing");
     els.promptCard.classList.remove("accept", "shake");
     if (go && state.run && !state.run.done) {
       state.run.index += 1;
@@ -667,6 +776,8 @@
     closeTier(false);
     stopTimer();
     state.run = null;
+    state.cameraDepth = 0;
+    state.cameraTarget = 0;
     document.body.dataset.zone = "sunlight";
     setDepthDisplay(0);
     updateBest();
@@ -730,6 +841,437 @@
     snow.innerHTML = html;
   }
 
+  function resizeOcean() {
+    const c = els.oceanCanvas;
+    if (!c) return;
+    const rect = c.getBoundingClientRect();
+    const scale = 3;
+    const width = Math.max(120, Math.round(rect.width / scale));
+    const height = Math.max(120, Math.round(rect.height / scale));
+    if (c.width !== width || c.height !== height) {
+      c.width = width;
+      c.height = height;
+    }
+  }
+  function startOcean() {
+    if (!els.oceanCanvas) return;
+    resizeOcean();
+    if (state.oceanRaf) return;
+    state.oceanLast = 0;
+    const loop = (now) => {
+      state.oceanRaf = requestAnimationFrame(loop);
+      if (now - state.oceanLast < 33) return;
+      state.oceanLast = now;
+      drawOcean(now);
+    };
+    state.oceanRaf = requestAnimationFrame(loop);
+  }
+  function stopOcean() {
+    if (state.oceanRaf) cancelAnimationFrame(state.oceanRaf);
+    state.oceanRaf = 0;
+  }
+  function oceanHash(n) {
+    n = Math.imul((n | 0) ^ 0x9e3779b9, 0x85ebca6b);
+    n ^= n >>> 13;
+    n = Math.imul(n, 0xc2b2ae35);
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+  }
+  function oceanLerp(a, b, t) { return a + (b - a) * t; }
+
+  function oceanWall(y, side, scroll, W, depth) {
+    const sx = W / 281;
+    const row = Math.floor((y + scroll * 0.82) / 4);
+    const phase = side ? 1.7 : 0;
+    const wobble = Math.sin(row * 0.12 + phase) * 0.5 + Math.sin(row * 0.039 + phase * 2.3) * 0.5;
+    const rough = oceanHash(row * 7 + (side ? 131 : 17));
+    let width = 12 + W * 0.04 + (wobble + 1) * W * 0.042 + rough * W * 0.034;
+    // Broad stepped buttresses give the walls live-style rock shelves.
+    const cycle = 15;
+    const local = (row + (side ? 6 : 2)) % cycle;
+    if (local < 4) {
+      const band = Math.floor((row + (side ? 6 : 2)) / cycle);
+      width += (10 + oceanHash(band * 17 + (side ? 3 : 1)) * 20) * sx;
+    }
+    if (Math.sin(row * 0.031 + phase * 1.4) > 0.66) width += (5 + oceanHash(row * 3) * 9) * sx;
+    if (depth > 900) width += Math.min(14, (depth - 900) / 600);
+    return Math.max(5, Math.min(W * 0.37, Math.round(width)));
+  }
+
+  function oceanCoral(ctx, x, y, color, size, dir) {
+    const s = Math.max(5, Math.round(size));
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y - s, 2, s);
+    ctx.fillRect(x + dir * 2, y - Math.round(s * 0.55), 4, 2);
+    ctx.fillRect(x + dir * 4, y - Math.round(s * 0.45), 2, 2);
+    ctx.fillRect(x + dir * 2, y - Math.round(s * 0.78), 2, 2);
+    ctx.fillRect(x + dir * 5, y - Math.round(s * 0.76), 3, 2);
+    ctx.fillRect(x - dir * 3, y - Math.round(s * 0.32), 3, 2);
+    ctx.fillRect(x + dir, y - s, 2, 2);
+    ctx.fillStyle = "rgba(200,255,245,.45)";
+    ctx.fillRect(x + 1, y - s + 1, 1, 2);
+    ctx.fillStyle = "#123f4d";
+    ctx.fillRect(x - 1, y - 1, 5, 2);
+  }
+
+  function oceanKelp(ctx, x, baseY, height, sway, color) {
+    ctx.fillStyle = color;
+    for (let i = 0; i < height; i += 4) {
+      const xx = x + Math.round(Math.sin(sway + i * 0.12) * 2);
+      ctx.fillRect(xx, baseY - i, 2, 3);
+      if (i % 8 === 0) ctx.fillRect(xx + 2, baseY - i - 1, 3, 2);
+    }
+  }
+
+  function oceanSurface(ctx, W, H, surfaceY, t) {
+    if (surfaceY < -40 || surfaceY > H + 10) return;
+    const sx = W / 281;
+    if (surfaceY > 0) {
+      for (let y = 0; y < surfaceY; y += 4) {
+        const k = y / Math.max(1, surfaceY);
+        ctx.fillStyle = `rgb(${Math.round(46 + 82 * k)},${Math.round(182 + 43 * k)},${Math.round(222 + 22 * k)})`;
+        ctx.fillRect(0, y, W, 4);
+      }
+      const cloud = (x, y, s) => {
+        ctx.fillStyle = "rgba(232,255,255,.86)";
+        ctx.fillRect(Math.round(x), y + 4, s * 4, 3);
+        ctx.fillRect(Math.round(x + s), y, s * 2, 4);
+        ctx.fillRect(Math.round(x + s * 2), y - 3, s, 3);
+        ctx.fillStyle = "rgba(160,225,242,.45)";
+        ctx.fillRect(Math.round(x), y + 7, s * 4, 2);
+      };
+      const drift = (t * 2.4) % 360;
+      const cloudY = surfaceY - 52;
+      if (cloudY > -10) {
+        cloud((W * 0.52 - drift * sx + W + 80) % (W + 80), cloudY, 4);
+        cloud(W * 0.76, cloudY + 17, 3);
+        cloud(W * 0.22, cloudY + 10, 3);
+      }
+    }
+    if (surfaceY < -8) return;
+    const base = Math.round(surfaceY);
+
+    const islandX = Math.round(W * 0.05);
+    ctx.fillStyle = "#0a4a55";
+    ctx.fillRect(islandX, base - 5, Math.round(70 * sx), 6);
+    ctx.fillStyle = "#2a7d58";
+    ctx.fillRect(islandX + 4, base - 11, Math.round(58 * sx), 7);
+    ctx.fillStyle = "#5da36b";
+    ctx.fillRect(islandX + 9, base - 14, Math.round(30 * sx), 3);
+    ctx.fillStyle = "#d7b96a";
+    ctx.fillRect(islandX + 2, base - 4, Math.round(66 * sx), 2);
+    const palm = (x, h) => {
+      ctx.fillStyle = "#5f4430";
+      ctx.fillRect(x, base - h, 3, h);
+      ctx.fillStyle = "#1e684a";
+      ctx.fillRect(x - 8, base - h - 2, 11, 3);
+      ctx.fillRect(x + 2, base - h - 5, 10, 3);
+      ctx.fillRect(x - 3, base - h - 8, 8, 3);
+      ctx.fillStyle = "#8cca72";
+      ctx.fillRect(x - 1, base - h - 2, 5, 2);
+    };
+    palm(islandX + 18, 24);
+    palm(islandX + 36, 18);
+
+    const lx = islandX + 51;
+    ctx.fillStyle = "#e8f1ff"; ctx.fillRect(lx, base - 32, 8, 29);
+    ctx.fillStyle = "#ff5d8f"; ctx.fillRect(lx, base - 32, 8, 5); ctx.fillRect(lx, base - 21, 8, 5);
+    ctx.fillStyle = "#ffd166"; ctx.fillRect(lx + 3, base - 38, 3, 6);
+    ctx.fillStyle = "#0b1526"; ctx.fillRect(lx + 3, base - 27, 3, 3);
+
+    const bx = Math.round(W * 0.45);
+    ctx.fillStyle = "#e8f1ff"; ctx.fillRect(bx, base - 9, 44, 7);
+    ctx.fillStyle = "#4de3ff"; ctx.fillRect(bx + 4, base - 6, 36, 3);
+    ctx.fillStyle = "#0b1526"; ctx.fillRect(bx + 12, base - 17, 20, 8);
+    ctx.fillStyle = "#93a7c9"; ctx.fillRect(bx + 16, base - 14, 6, 4);
+    ctx.fillStyle = "#e8f1ff"; ctx.fillRect(bx + 45, base - 34, 2, 25);
+    ctx.fillStyle = "#ff5d8f"; ctx.fillRect(bx + 47, base - 34, 11, 7);
+    ctx.fillStyle = "#ffd166"; ctx.fillRect(bx + 50, base - 32, 3, 3);
+    ctx.fillStyle = "#0b1526"; ctx.fillRect(bx - 2, base - 2, 48, 3);
+
+    for (let x = -12; x < W + 12; x += 24) {
+      const y = base - 2 + Math.round(Math.sin(t * 1.7 + x * 0.09) * 1.5);
+      ctx.fillStyle = "rgba(230,255,255,.78)";
+      ctx.fillRect(x + ((t * 8) % 24), y, 12, 2);
+      ctx.fillStyle = "rgba(10,90,120,.55)";
+      ctx.fillRect(x + 6, y + 3, 8, 1);
+    }
+  }
+
+  function drawReefBackdrop(ctx, W, H, scroll, night) {
+    const sx = W / 281;
+    const alpha = 0.34 * (1 - night * 0.42);
+    for (let i = 0; i < 9; i++) {
+      const y = ((i * 83 + 23 - scroll * 0.3) % (H + 150) + H + 150) % (H + 150) - 75;
+      const side = i & 1;
+      const w = Math.round((16 + oceanHash(i * 17 + 3) * 34) * sx);
+      const inset = Math.round((10 + oceanHash(i * 29 + 7) * 22) * sx);
+      const h = Math.round((34 + oceanHash(i * 31 + 11) * 46) * (H / 290));
+      const x = side ? W - inset - w : inset;
+      ctx.fillStyle = `rgba(8, 41, 61, ${alpha.toFixed(3)})`;
+      ctx.fillRect(x, y, w, h);
+      ctx.fillStyle = `rgba(102, 169, 154, ${(alpha * 0.54).toFixed(3)})`;
+      ctx.fillRect(x + 2, y, Math.max(2, w - 4), 2);
+      ctx.fillStyle = `rgba(3, 23, 38, ${(alpha * 0.72).toFixed(3)})`;
+      ctx.fillRect(x + (side ? Math.round(w * 0.45) : 0), y + Math.round(h * 0.54), Math.round(w * 0.55), 2);
+      if (oceanHash(i * 41 + 9) > 0.58) {
+        ctx.fillStyle = `rgba(123, 164, 92, ${(alpha * 0.68).toFixed(3)})`;
+        ctx.fillRect(x + Math.round(w * 0.22), y - 2, Math.max(3, Math.round(w * 0.38)), 2);
+      }
+    }
+  }
+
+  function drawLightShafts(ctx, W, H, surfaceY, depth, t) {
+    const fade = Math.max(0, 1 - depth / 520);
+    if (fade <= 0) return;
+    const top = Math.max(0, surfaceY);
+    ctx.save();
+    for (let i = 0; i < 5; i++) {
+      const x = ((i * W) / 5 + Math.sin(t * 0.14 + i * 1.3) * W * 0.035 + W) % W;
+      ctx.fillStyle = `rgba(176, 248, 245, ${(0.028 + i * 0.005) * fade})`;
+      ctx.beginPath();
+      ctx.moveTo(x - W * 0.03, top);
+      ctx.lineTo(x + W * 0.04, top);
+      ctx.lineTo(x + W * 0.14, H);
+      ctx.lineTo(x + W * 0.06, H);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  function oceanFish(ctx, x, y, dir, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, 4, 1);
+    ctx.fillRect(x + (dir > 0 ? -2 : 4), y, 2, 1);
+    ctx.fillRect(x + (dir > 0 ? 1 : 2), y - 1, 1, 1);
+    ctx.fillStyle = "rgba(233,255,255,.75)";
+    ctx.fillRect(x + (dir > 0 ? 3 : 0), y, 1, 1);
+  }
+
+  function drawFishSchools(ctx, W, H, t, scroll, night) {
+    const colors = night > 0.35 ? ["#75c5c6", "#8aa8d1", "#c18fb0"] : ["#86d8c2", "#c8df75", "#efb477"];
+    for (let school = 0; school < 4; school++) {
+      const dir = school % 2 ? -1 : 1;
+      const travel = (t * (2.2 + school * 0.35) + school * 41) % (W * 0.19);
+      const baseX = dir > 0 ? W * 0.08 + travel : W * 0.92 - travel;
+      const baseY = ((school * 67 + 44 - scroll * 0.32 + t * 1.7) % (H + 80) + H + 80) % (H + 80) - 40;
+      for (let f = 0; f < 3; f++) {
+        const x = Math.round(baseX + dir * f * 8);
+        const y = Math.round(baseY + (f % 2) * 3);
+        oceanFish(ctx, x, y, dir, colors[school % colors.length]);
+      }
+    }
+  }
+
+  function drawOcean(now) {
+    const c = els.oceanCanvas;
+    if (!c) return;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    const W = c.width, H = c.height;
+    const t = now / 1000;
+    const depth = Number.isFinite(state.cameraDepth) ? state.cameraDepth : 0;
+    const scroll = depth * 0.92;
+    const surfaceY = Math.round(H * 0.235 - scroll);
+    const shade = Math.min(1, depth / 2200);
+    const night = Math.min(1, Math.max(0, depth - 700) / 2600);
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, W, H);
+
+    const top = Math.max(0, surfaceY);
+    for (let y = 0; y < H; y += 4) {
+      const k = Math.max(0, (y - top) / Math.max(1, H - top));
+      const mix = Math.min(1, shade * (0.45 + k * 0.55));
+      const r = Math.round(oceanLerp(30 - k * 18, 2, mix));
+      const g = Math.round(oceanLerp(154 - k * 52, 28, mix));
+      const b = Math.round(oceanLerp(190 - k * 50, 54, mix));
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(0, y, W, 4);
+    }
+
+    ctx.save();
+    const glow = ctx.createRadialGradient(W * 0.5, Math.max(0, surfaceY) + H * 0.18, 4, W * 0.5, H * 0.4, Math.max(W, H) * 0.72);
+    glow.addColorStop(0, "rgba(210,253,255,.16)");
+    glow.addColorStop(0.42, "rgba(130,235,250,.065)");
+    glow.addColorStop(1, "rgba(20,120,150,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
+    drawReefBackdrop(ctx, W, H, scroll, night);
+    drawLightShafts(ctx, W, H, surfaceY, depth, t);
+
+    const start = Math.max(0, Math.ceil((surfaceY + 6) / 4) * 4);
+    ctx.save();
+    ctx.globalAlpha = 0.25;
+    for (let y = start; y < H; y += 6) {
+      const row = Math.floor((y + scroll * 0.55) / 6);
+      const left = Math.round(12 + (Math.sin(row * 0.09) * 0.5 + 0.5) * W * 0.12 + oceanHash(row * 5) * W * 0.05);
+      const right = Math.round(10 + (Math.cos(row * 0.075 + 1.2) * 0.5 + 0.5) * W * 0.13 + oceanHash(row * 9 + 4) * W * 0.04);
+      ctx.fillStyle = "#082e45";
+      ctx.fillRect(0, y, left, 6);
+      ctx.fillRect(W - right, y, right, 6);
+    }
+    ctx.restore();
+
+    const sx = W / 281;
+    for (let y = start; y < H; y += 4) {
+      const row = Math.floor((y + scroll) / 4);
+      const lw = oceanWall(y, false, scroll, W, depth);
+      const rw = oceanWall(y, true, scroll, W, depth);
+      const band = row % 8;
+      const lift = band === 0 ? 10 : band === 4 ? 4 : 0;
+      const rockR = Math.round(oceanLerp(23, 5, night));
+      const rockG = Math.round(oceanLerp(80, 23, night));
+      const rockB = Math.round(oceanLerp(99, 39, night));
+      ctx.fillStyle = `rgb(${rockR + lift},${rockG + lift},${rockB + lift})`;
+      ctx.fillRect(0, y, lw, 4);
+      ctx.fillRect(W - rw, y, rw, 4);
+
+      ctx.fillStyle = `rgba(${Math.round(104 - night * 62)},${Math.round(180 - night * 92)},${Math.round(170 - night * 78)},.55)`;
+      ctx.fillRect(Math.max(0, lw - 3), y, 3, 4);
+      ctx.fillRect(W - rw, y, 3, 4);
+
+      if (band === 4) {
+        ctx.fillStyle = "rgba(5,29,43,.5)";
+        ctx.fillRect(0, y + 1, Math.max(0, lw - 4), 1);
+        ctx.fillRect(W - rw + 4, y + 1, Math.max(0, rw - 4), 1);
+      }
+      if (oceanHash(row * 11 + 5) > 0.58) {
+        ctx.fillStyle = night > 0.35 ? "rgba(107,208,196,.2)" : "rgba(128,185,148,.34)";
+        ctx.fillRect(2 + Math.floor(oceanHash(row * 3) * Math.max(1, lw - 8)), y, 4, 2);
+        ctx.fillRect(W - rw + 3 + Math.floor(oceanHash(row * 17) * Math.max(1, rw - 8)), y, 4, 2);
+      }
+      if (oceanHash(row * 23 + 9) > 0.88) {
+        ctx.fillStyle = "rgba(190,126,82,.5)";
+        ctx.fillRect(3 + Math.floor(oceanHash(row * 5) * Math.max(1, lw - 7)), y, 3, 4);
+        ctx.fillRect(W - rw + 4 + Math.floor(oceanHash(row * 29) * Math.max(1, rw - 8)), y, 3, 4);
+      }
+      if (oceanHash(row * 31 + 1) > 0.78) {
+        ctx.fillStyle = "rgba(111,151,82,.62)";
+        ctx.fillRect(Math.max(0, lw - 7), y, 4, 4);
+        ctx.fillRect(W - rw + 3, y, 4, 4);
+      }
+    }
+
+    // Chunky rock plates break up the wall silhouette and hold the reef life.
+    const plateStart = Math.floor((start + scroll) / 30) - 1;
+    for (let i = plateStart; i * 30 - scroll < H + 30; i++) {
+      const sy = i * 30 - scroll;
+      if (sy < start - 12 || sy > H) continue;
+      for (let side = 0; side < 2; side++) {
+        const right = side === 1;
+        if (oceanHash(i * 29 + (right ? 5 : 1)) < 0.2) continue;
+        const wall = oceanWall(Math.max(start, Math.min(H - 1, sy + 8)), right, scroll, W, depth);
+        const ledge = Math.round((12 + oceanHash(i * 37 + side) * 24) * sx);
+        const x = right ? W - wall - ledge + 2 : Math.max(0, wall - 2);
+        const y = Math.max(start, sy);
+        const h = Math.max(5, Math.round((6 + oceanHash(i * 41 + side) * 8) * (H / 290)));
+        const pr = Math.round(oceanLerp(43, 12, night));
+        const pg = Math.round(oceanLerp(94, 35, night));
+        const pb = Math.round(oceanLerp(103, 47, night));
+        ctx.fillStyle = "rgba(4,24,36,.55)";
+        ctx.fillRect(x + (right ? 0 : 2), y + h, Math.max(0, ledge - 2), 2);
+        ctx.fillStyle = `rgb(${pr},${pg},${pb})`;
+        ctx.fillRect(x, y, ledge, h);
+        ctx.fillStyle = `rgba(${Math.round(132 - night * 58)},${Math.round(194 - night * 86)},${Math.round(174 - night * 76)},.58)`;
+        ctx.fillRect(x, y, ledge, 2);
+        const crown = Math.max(3, Math.round(ledge * 0.44));
+        const crownX = right ? x + ledge - crown : x;
+        ctx.fillStyle = `rgb(${pr + 6},${pg + 10},${pb + 8})`;
+        ctx.fillRect(crownX, y - 3, crown, 3);
+        ctx.fillStyle = `rgba(${Math.round(158 - night * 60)},${Math.round(212 - night * 92)},${Math.round(194 - night * 84)},.42)`;
+        ctx.fillRect(crownX, y - 3, crown, 1);
+        if (oceanHash(i * 43 + side) > 0.45) {
+          ctx.fillStyle = "rgba(112,151,82,.7)";
+          ctx.fillRect(x + Math.round(ledge * 0.18), y - 2, Math.max(3, Math.round(ledge * 0.45)), 3);
+        }
+      }
+    }
+
+    const coralColors = ["#e09a5f", "#dd7894", "#b394df", "#cec06a", "#80b261", "#d86767"];
+    const coralStart = Math.floor((start + scroll) / 4 / 6) * 6;
+    for (let row = coralStart; row * 4 - scroll < H + 30; row += 6) {
+      const sy = row * 4 - scroll;
+      if (sy < start + 7 || sy > H + 20) continue;
+      for (let side = 0; side < 2; side++) {
+        const right = side === 1;
+        const key = row * 47 + (right ? 11 : 3);
+        if (oceanHash(key) < 0.24) continue;
+        const wall = oceanWall(sy, right, scroll, W, depth);
+        const x = right ? W - wall - 1 : wall + 1;
+        const color = coralColors[Math.floor(oceanHash(key + 2) * coralColors.length)];
+        const size = Math.round((9 + oceanHash(key + 4) * 18) * sx);
+        oceanCoral(ctx, x, sy, color, size, right ? -1 : 1);
+        if (oceanHash(key + 7) > 0.54) {
+          const kx = right ? W - wall - 6 : wall + 4;
+          oceanKelp(ctx, kx, sy + 4, Math.round((16 + oceanHash(key + 9) * 26) * (H / 290)), row + t * 0.6, "rgba(91,139,78,.8)");
+        }
+        if (oceanHash(key + 13) > 0.72) {
+          ctx.fillStyle = "#e6b968";
+          for (let n = 0; n < 3; n++) {
+            ctx.fillRect(x + (right ? -3 - n * 2 : 3 + n * 2), sy - Math.round((5 + n * 3) * sx), 2, Math.round((9 + n * 2) * sx));
+          }
+        }
+        if (oceanHash(key + 21) > 0.64) {
+          const extraColor = coralColors[Math.floor(oceanHash(key + 23) * coralColors.length)];
+          oceanCoral(ctx, x + (right ? -6 : 6), sy + 3, extraColor, Math.max(5, Math.round(size * 0.62)), right ? -1 : 1);
+        }
+      }
+    }
+
+    drawFishSchools(ctx, W, H, t, scroll, night);
+
+    ctx.save();
+    for (let i = 0; i < 38; i++) {
+      const x = (i * 37 + 13 + Math.sin(t * 0.24 + i) * 5 + W) % W;
+      const y = (H - ((t * (4 + (i % 5)) + i * 29 - scroll * 0.22) % (H + 40)) + H + 40) % (H + 40);
+      if (y < start + 4) continue;
+      ctx.fillStyle = `rgba(195,250,255,${0.16 + (i % 4) * 0.07})`;
+      const size = i % 3 === 0 ? 2 : 1;
+      ctx.fillRect(Math.round(x), Math.round(y), size, size);
+    }
+    ctx.restore();
+
+    const tint = Math.min(0.44, Math.max(0, depth - 80) / 1500);
+    if (tint > 0.004) {
+      ctx.fillStyle = `rgba(2,17,35,${tint.toFixed(3)})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+    if (depth > 900) {
+      ctx.save();
+      ctx.fillStyle = "rgba(120,250,255,.45)";
+      for (let i = 0; i < 12; i++) {
+        const gx = Math.round((i * 61 + 19 + Math.sin(t * 0.3 + i) * 4 + W) % W);
+        const gy = Math.round((i * 43 + 31 + Math.cos(t * 0.2 + i) * 3 + H) % H);
+        ctx.fillRect(gx, gy, i % 3 === 0 ? 2 : 1, 1);
+      }
+      ctx.restore();
+    }
+
+    if (!state.overlayOpen && !(els.game && els.game.classList.contains("revealing"))) {
+      const kx = Math.round(W * 0.27 + Math.sin(t * 0.8) * 3);
+      const ky = Math.round(H * 0.45 + Math.sin(t * 1.25) * 2);
+      ctx.fillStyle = "rgba(185,246,255,.25)";
+      ctx.fillRect(kx - 6, ky - 9, 2, 2);
+      ctx.fillRect(kx - 9, ky - 15, 1, 1);
+      ctx.fillStyle = "#ff7a9c";
+      ctx.fillRect(kx, ky, 10, 4);
+      ctx.fillRect(kx + 9, ky + 1, 4, 3);
+      ctx.fillRect(kx - 2, ky + 1, 3, 2);
+      ctx.fillRect(kx - 4, ky, 2, 2);
+      ctx.fillStyle = "#ffc1d1";
+      ctx.fillRect(kx + 2, ky + 1, 3, 1);
+      ctx.fillStyle = "#07111f";
+      ctx.fillRect(kx + 10, ky + 1, 1, 1);
+      ctx.fillStyle = "#ff7a9c";
+      ctx.fillRect(kx + 1, ky + 4, 2, 3);
+      ctx.fillRect(kx + 6, ky + 4, 2, 3);
+    }
+
+    oceanSurface(ctx, W, H, surfaceY, t);
+  }
+
   function buildTierTable() {
     const frag = document.createDocumentFragment();
     for (const score of SCORE_ORDER) {
@@ -769,16 +1311,11 @@
     els.menuBtn.addEventListener("click", goMenu);
     els.againBtn.addEventListener("click", () => startRun(state.lastMode));
     els.copyBtn.addEventListener("click", copyResult);
-    els.soundBtn.addEventListener("click", () => {
-      sound.enabled = !sound.enabled;
-      save.sound = sound.enabled;
-      persist();
-      els.soundBtn.setAttribute("aria-pressed", String(sound.enabled));
-      els.soundIcon.textContent = sound.enabled ? "♪" : "×";
-      if (sound.enabled) { sound.unlock(); sound.click(); }
+    [els.soundBtn, els.gameSoundBtn].forEach((btn) => {
+      if (btn) btn.addEventListener("click", toggleSound);
     });
-    els.soundBtn.setAttribute("aria-pressed", String(sound.enabled));
-    els.soundIcon.textContent = sound.enabled ? "♪" : "×";
+    syncSoundUI();
+    window.addEventListener("resize", resizeOcean);
   }
 
   /* ---------------- boot ---------------- */

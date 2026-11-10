@@ -53,7 +53,7 @@ kbd {
 .svg-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* ---------------- the sea ---------------- */
-.sea { position: fixed; inset: 0; z-index: -2; overflow: hidden; }
+.sea { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .water {
   position: absolute; inset: 0;
   background: linear-gradient(180deg, var(--water-top) 0%, var(--water-bottom) 78%, #01070d 100%);

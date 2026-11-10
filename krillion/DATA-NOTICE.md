@@ -28,3 +28,7 @@ Source: <https://github.com/bryceaspringfield/krillion-bank>
 A collected bank of prompts dealt in Krillion, with every answer known to score on each prompt by tier: answers from post-round reveal lists, answers checked against the game, and other players' answers from multiplayer rounds. The repository states no separate license for the data; prompt wording, answers, tiers and scores remain the property of their respective owner. It is used here for personal offline play.
 
 The merge preserves existing reveal grades for overlapping answers, adds new answers at the collected bank's grade, drops answers over 100 characters and entries without letters or digits, and invents no new grades. Prompts, answers and grades remain the property of their respective owner. This offline game is not affiliated with Daily, playdaily.org, or the original Krillion.
+
+## Local addition
+
+One answer was added locally by player request: **Nuclear reactor** is accepted for **Name something that uses steam** at **Schooler 30**. It is not present in the archived live answer sheet for that prompt; it is placed at the same tier as the official **Nuclear power plant** answer.

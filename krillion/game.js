@@ -123,6 +123,7 @@
 
   /* ---------------- text / bank helpers ---------------- */
   function fmt(n) { return Math.round(n).toLocaleString("en-US"); }
+  function setText(el, value) { if (el) el.textContent = value; }
   function countLines(s) {
     if (!s) return 0;
     let n = 1;
@@ -817,10 +818,10 @@
     const meta = bank.meta || {};
     const nPrompts = meta.prompts || PROMPTS.length;
     const nAnswers = meta.answers || PROMPTS.reduce((s, p) => s + p.total, 0);
-    els.bankPrompts.textContent = fmt(nPrompts);
-    els.bankAnswers.textContent = fmt(nAnswers);
-    els.howPrompts.textContent = fmt(nPrompts);
-    els.howAnswers.textContent = fmt(nAnswers);
+    setText(els.bankPrompts, fmt(nPrompts));
+    setText(els.bankAnswers, fmt(nAnswers));
+    setText(els.howPrompts, fmt(nPrompts));
+    setText(els.howAnswers, fmt(nAnswers));
     els.loaderSub.textContent = `${fmt(nAnswers)} accepted answers, ready offline.`;
     if (bank.meta && bank.meta.generated) {
       els.loaderSub.textContent += ` Bank dated ${bank.meta.generated}.`;

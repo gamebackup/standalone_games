@@ -1,6 +1,6 @@
 # Data notice
 
-`data.js` is a derived, merged answer bank for this offline tribute. It is built from two public Krillion reveal datasets.
+`data.js` is a derived, merged answer bank for this offline tribute. It is built from three public Krillion data collections.
 
 ## Microhx/krillion-answers
 
@@ -21,4 +21,10 @@ Source: <https://github.com/StruggleYang/krillion-dataset> — **CC BY 4.0**.
 
 > KrillionHQ (2026). *Krillion Daily Dive Dataset* — prompts and rarity-tiered answers for every Krillion daily dive.
 
-The merge keeps the most common grade where an answer appeared with different grades, drops answers over 100 characters and entries without letters or digits, and invents no new grades. Prompts, answers and grades remain the property of their respective owner. This offline game is not affiliated with Daily, playdaily.org, or the original Krillion.
+## bryceaspringfield/krillion-bank
+
+Source: <https://github.com/bryceaspringfield/krillion-bank>
+
+A collected bank of prompts dealt in Krillion, with every answer known to score on each prompt by tier: answers from post-round reveal lists, answers checked against the game, and other players' answers from multiplayer rounds. The repository states no separate license for the data; prompt wording, answers, tiers and scores remain the property of their respective owner. It is used here for personal offline play.
+
+The merge preserves existing reveal grades for overlapping answers, adds new answers at the collected bank's grade, drops answers over 100 characters and entries without letters or digits, and invents no new grades. Prompts, answers and grades remain the property of their respective owner. This offline game is not affiliated with Daily, playdaily.org, or the original Krillion.

@@ -100,9 +100,9 @@ body[data-screen="game"] .sitebar {
   justify-content: space-between;
   height: 48px;
   padding: 0 16px;
-  color: #344052;
-  background: #f7f7f7;
-  border-bottom: 1px solid #e7eaef;
+  color: #dbe6f4;
+  background: #0b1623;
+  border-bottom: 1px solid #1b2b3d;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   letter-spacing: .01em;
 }
@@ -114,23 +114,24 @@ body[data-screen="game"] .sitebar {
   background: #ffd15c;
   box-shadow: inset 0 0 0 3px #ffb700, 0 0 0 1px #e4a500;
 }
-.daily-name { color: #2f3948; font-size: 16px; font-weight: 500; letter-spacing: .01em; }
-.sitebar-slash { color: #b4bdc8; font-size: 16px; }
-.game-name { color: #111a26; font-size: 17px; font-weight: 500; letter-spacing: .01em; }
+.daily-name { color: #dce7f5; font-size: 16px; font-weight: 500; letter-spacing: .01em; }
+.sitebar-slash { color: #455970; font-size: 16px; }
+.game-name { color: #f0f5fc; font-size: 17px; font-weight: 500; letter-spacing: .01em; }
 .offline-tag {
   margin-left: 3px;
   padding: 1px 5px 2px;
-  color: #6b7888;
-  border: 1px solid #cdd4dd;
+  color: #95a9c0;
+  border: 1px solid #2a3d53;
+  background: rgba(255, 255, 255, .025);
   border-radius: 3px;
   font-size: 10px;
   letter-spacing: .1em;
   text-transform: uppercase;
 }
-.sitebar-note { margin: 0; color: #7d8897; font-size: 13px; letter-spacing: .06em; }
+.sitebar-note { margin: 0; color: #8da1b8; font-size: 13px; letter-spacing: .06em; }
 
 /* ---------------- game shell ---------------- */
-body[data-screen="game"] { overflow: hidden; background: #f5f7fa; }
+body[data-screen="game"] { overflow: hidden; background: #07111c; }
 body[data-screen="game"] .sea,
 body[data-screen="game"] .topbar,
 body[data-screen="results"] .topbar { display: none; }
@@ -167,8 +168,8 @@ body[data-screen="game"] .game-foot {
   justify-content: space-between;
   gap: 16px;
   padding: 8px 4px 10px;
-  color: #697687;
-  border-top: 1px solid #e2e7ed;
+  color: #8ca0b8;
+  border-top: 1px solid #1b2b3d;
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   letter-spacing: .01em;
 }
@@ -181,18 +182,18 @@ body[data-screen="game"] .game-foot {
   font-size: 13px;
 }
 .foot-brand b {
-  color: #182231;
+  color: #eef4fc;
   font-size: 14px;
   font-weight: 650;
   letter-spacing: .12em;
 }
-.foot-brand span { color: #7c8897; }
+.foot-brand span { color: #8ca0b8; }
 .foot-note {
   display: flex;
   align-items: center;
   gap: 8px;
   margin: 0;
-  color: #7a8696;
+  color: #8ca0b8;
   font-size: 12px;
   letter-spacing: .025em;
   white-space: nowrap;

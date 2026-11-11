@@ -16,11 +16,11 @@ No server, no account, no network requests. Open `index.html` and play.
 - Speed earns nothing. A refused answer only costs time, so you can keep reaching until the clock runs out.
 - If the clock expires while text is in the box, that answer is submitted for you.
 - Progress, personal bests and the last 280 prompts you saw are saved in `localStorage`.
-- The play screen uses a Daily-style light page frame around a pixel-art dive: measured HUD pills, a rolling depth ruler, and an original offline footer in the space below the playfield (the footer is hidden on phones). An accepted answer scrolls the krill down a continuous procedural reef — distant silhouette ridges, stepped rock shelves, denser coral, drifting fish schools, surface light shafts and darker deep water — while the prompt card sinks away. The reveal uses the live result wording: tier name, six rarity pips, the quoted answer, `+10 PTS · sink 100m`, and the total points gained (`+100`). Completed squares in the top prompt bar keep the rarity colour of their accepted answer; misses stay muted.
+- The play screen uses a dark page frame around a pixel-art dive: measured HUD pills, a rolling depth ruler, and an original offline footer in the space below the playfield (the footer is hidden on phones). An accepted answer scrolls the krill down a continuous procedural reef — distant silhouette ridges, stepped rock shelves, denser coral, drifting fish schools, surface light shafts and darker deep water — while the prompt card sinks away. The reveal uses the live result wording: tier name, six rarity pips, the quoted answer, `+10 PTS · sink 100m`, and the total points gained (`+100`). Completed squares in the top prompt bar keep the rarity colour of their accepted answer; misses stay muted.
 
 ## The answer bank
 
-`data.js` is a generated bank of **1,452 prompts and 1,147,719 accepted answers** (about 19 MB, loaded locally as a plain script). It was merged from three public Krillion data collections:
+`data.js` is a generated bank of **1,452 prompts and 1,147,733 accepted answers** (about 19 MB, loaded locally as a plain script). It was merged from three public Krillion data collections:
 
 - [Microhx/krillion-answers](https://github.com/Microhx/krillion-answers) — full public reveal rows (prompt, answer, tier, category). Its `DATA-NOTICE.md` applies: prompts, answer lists and tiers remain the property of their respective owner; this copy is for personal offline reference and play, not a competing product.
 - [KrillionHQ / StruggleYang krillion-dataset](https://github.com/StruggleYang/krillion-dataset) — daily dive tier samples, CC BY 4.0.
@@ -28,7 +28,7 @@ No server, no account, no network requests. Open `index.html` and play.
 
 Duplicate prompts were merged. For the original reveal merge, the most common grade won (ties go to the rarer grade). When the collected bank was added, existing reveal grades were preserved and only unseen answers were appended at their collected grade. Answers longer than 100 characters and entries with no letters or digits were dropped; nothing else was invented or re-graded.
 
-One local addition: **Nuclear reactor** is accepted for **Name something that uses steam** at **Schooler 30**, the same tier as the official **Nuclear power plant** answer. It is not present in the archived live answer sheet for that prompt.
+Fifteen local additions are accepted for **Name something that uses steam**, all close forms of entries already in the source sheet. The first was **Nuclear reactor** at **Schooler 30**, matching the official **Nuclear power plant** tier. That prompt now also accepts **Atomic reactor**, **Reactor**, **Nuclear power station**, **Atomic power plant**, **Power station**, **Turbine** and **Steam boiler** at Schooler; **Coal plant** and **Geothermal plant** at Rare; and **Clothes iron**, **Steam iron**, **Electric kettle**, **Tea kettle** and **Teapot** at Plankton. These are local conveniences, not claims that the live game accepts them.
 
 Matching is local and forgiving: case, accents, punctuation, `&`/`and`, leading articles, simple plurals and a one-character typo are accepted when the match is unambiguous. Anything outside the bank is refused. There is deliberately no AI fallback and no crowd lookup.
 

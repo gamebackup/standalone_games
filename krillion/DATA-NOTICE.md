@@ -29,6 +29,10 @@ A collected bank of prompts dealt in Krillion, with every answer known to score 
 
 The merge preserves existing reveal grades for overlapping answers, adds new answers at the collected bank's grade, drops answers over 100 characters and entries without letters or digits, and invents no new grades. Prompts, answers and grades remain the property of their respective owner. This offline game is not affiliated with Daily, playdaily.org, or the original Krillion.
 
-## Local addition
+## Local additions
 
-One answer was added locally by player request: **Nuclear reactor** is accepted for **Name something that uses steam** at **Schooler 30**. It is not present in the archived live answer sheet for that prompt; it is placed at the same tier as the official **Nuclear power plant** answer.
+Fifteen answers have been added locally by player request for **Name something that uses steam**. Each is a close form or everyday variant of an answer already in the source sheet, and uses that answer's tier. No prompt text or existing grade was changed.
+
+- **Schooler 30:** Nuclear reactor (added first; matching Nuclear power plant), Atomic reactor, Reactor, Nuclear power station, Atomic power plant, Power station, Turbine, Steam boiler.
+- **Rare 60:** Coal plant (matching Coal power plant), Geothermal plant (matching Geothermal power plant).
+- **Plankton 10:** Clothes iron and Steam iron (matching Iron), Electric kettle and Tea kettle (matching Kettle), Teapot.
